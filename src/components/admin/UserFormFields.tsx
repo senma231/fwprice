@@ -16,16 +16,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { UserRole } from '@/types/auth';
+import type { UserRole, PermissionAction, FeatureScope } from '@/types/auth';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Separator } from '@/components/ui/separator';
 
 interface UserFormFieldsProps {
   control: Control<any>; // eslint-disable-line @typescript-eslint/no-explicit-any
   isEditing?: boolean;
 }
 
+const featureScopes: FeatureScope[] = ['prices', 'users', 'announcements', 'rfqs'];
+const permissionActions: PermissionAction[] = ['view', 'create', 'edit', 'delete'];
+
 const UserFormFields: React.FC<UserFormFieldsProps> = ({ control, isEditing = false }) => {
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <FormField
         control={control}
         name="name"
@@ -74,7 +79,14 @@ const UserFormFields: React.FC<UserFormFieldsProps> = ({ control, isEditing = fa
         render={({ field }) => (
           <FormItem>
             <FormLabel>User Role</FormLabel>
-            <Select onValueChange={field.onChange} defaultValue={field.value}>
+            <Select 
+              onValueChange={(value) => {
+                field.onChange(value);
+                // Optionally, could trigger re-setting default permissions here if needed,
+                // but currently handled in authService or form defaultValues.
+              }} 
+              defaultValue={field.value}
+            >
               <FormControl>
                 <SelectTrigger>
                   <SelectValue placeholder="Select a role" />
@@ -89,6 +101,63 @@ const UserFormFields: React.FC<UserFormFieldsProps> = ({ control, isEditing = fa
           </FormItem>
         )}
       />
+
+      <Separator />
+      
+      <div>
+        <FormLabel className="text-lg font-semibold">Permissions</FormLabel>
+        <p className="text-sm text-muted-foreground mb-4">
+          Define specific actions the user can perform for each feature.
+        </p>
+        <div className="space-y-4">
+          {featureScopes.map(scope => (
+            <div key={scope} className="p-4 border rounded-md">
+              <h4 className="font-medium capitalize mb-3 text-primary">{scope}</h4>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-2">
+                {permissionActions.map(action => (
+                  <FormField
+                    key={`${scope}-${action}`}
+                    control={control}
+                    name={`permissions.${scope}`}
+                    render={({ field }) => {
+                      const isChecked = field.value?.includes(action) || false;
+                      return (
+                        <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                          <FormControl>
+                            <Checkbox
+                              checked={isChecked}
+                              onCheckedChange={(checked) => {
+                                let newValue = [...(field.value || [])];
+                                if (checked) {
+                                  if (!newValue.includes(action)) {
+                                    newValue.push(action);
+                                  }
+                                } else {
+                                  newValue = newValue.filter(val => val !== action);
+                                }
+                                field.onChange(newValue.sort()); // Sort for consistency
+                              }}
+                            />
+                          </FormControl>
+                          <FormLabel className="font-normal capitalize text-sm">
+                            {action}
+                          </FormLabel>
+                        </FormItem>
+                      );
+                    }}
+                  />
+                ))}
+              </div>
+               <FormMessage /> {/* For messages related to permissions[scope] if any */}
+            </div>
+          ))}
+        </div>
+         <FormField
+            control={control}
+            name="permissions"
+            render={() => <FormMessage />} // For overall permissions object errors
+          />
+      </div>
     </div>
   );
 };
