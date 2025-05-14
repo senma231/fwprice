@@ -113,7 +113,7 @@ const UserFormFields: React.FC<UserFormFieldsProps> = ({ control, isEditing = fa
           {featureScopes.map(scope => (
             <div key={scope} className="p-4 border rounded-md">
               <h4 className="font-medium capitalize mb-3 text-primary">{scope}</h4>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-3">
                 {permissionActions.map(action => (
                   <FormField
                     key={`${scope}-${action}`}

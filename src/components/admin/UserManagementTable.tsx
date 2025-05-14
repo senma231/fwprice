@@ -17,6 +17,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import CreateUserForm from './CreateUserForm';
 import { Pencil, Trash2, UserPlus2, AlertTriangle } from 'lucide-react';
 import { toast } from "@/hooks/use-toast";
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const UserManagementTable = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -86,7 +87,7 @@ const UserManagementTable = () => {
         setIsCreateModalOpen(isOpen);
         if(!isOpen) setEditingUser(null);
       }}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-xl md:max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingUser ? 'Edit User' : 'Create New User'}</DialogTitle>
             <DialogDescription>
