@@ -17,25 +17,54 @@ import AnnouncementForm from './AnnouncementForm';
 import { Pencil, Trash2, PlusCircle, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from "@/hooks/use-toast";
+import type { Locale } from '@/lib/dictionaries';
 
-const AnnouncementManagementTable = () => {
+interface AnnouncementManagementTableProps {
+  lang: Locale;
+}
+
+const AnnouncementManagementTable = ({ lang }: AnnouncementManagementTableProps) => {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingAnnouncement, setEditingAnnouncement] = useState<Announcement | null>(null);
   const [announcementToDelete, setAnnouncementToDelete] = useState<Announcement | null>(null);
+  const [dict, setDict] = useState<any>(null);
+  const [commonDict, setCommonDict] = useState<any>(null);
+  const [toastDict, setToastDict] = useState<any>(null);
 
+
+  useEffect(() => {
+    const loadResources = async () => {
+      setIsLoading(true);
+      try {
+        const localeDict = (await import(`@/locales/${lang}.json`)).default;
+        setDict(localeDict.adminPages.announcementManagement);
+        setCommonDict(localeDict.common);
+        setToastDict(localeDict.toasts);
+
+        const data = await fetchAnnouncements();
+        setAnnouncements(data);
+      } catch (error) {
+        console.error("Failed to load resources", error);
+        // Fallback to English if dictionary loading fails
+        const enDict = (await import(`@/locales/en.json`)).default;
+        setDict(enDict.adminPages.announcementManagement);
+        setCommonDict(enDict.common);
+        setToastDict(enDict.toasts);
+      }
+      setIsLoading(false);
+    };
+    loadResources();
+  }, [lang]);
 
   const loadAnnouncements = async () => {
-    setIsLoading(true);
+    setIsLoading(true); // Keep this to show loading for announcement list specifically
     const data = await fetchAnnouncements();
     setAnnouncements(data);
     setIsLoading(false);
   };
 
-  useEffect(() => {
-    loadAnnouncements();
-  }, []);
 
   const handleAnnouncementCreatedOrUpdated = () => {
     loadAnnouncements();
@@ -53,18 +82,25 @@ const AnnouncementManagementTable = () => {
   };
 
   const handleDeleteAnnouncement = async () => {
-    if (!announcementToDelete) return;
+    if (!announcementToDelete || !toastDict) return;
     try {
       await apiDeleteAnnouncement(announcementToDelete.id);
-      toast({ title: "Announcement Deleted", description: `Announcement "${announcementToDelete.title}" has been deleted.`});
+      toast({ 
+        title: toastDict.announcementDeleted, 
+        description: toastDict.announcementDeletedDesc.replace('{title}', announcementToDelete.title)
+      });
       setAnnouncementToDelete(null);
       loadAnnouncements();
     } catch (error) {
-      toast({ title: "Error Deleting Announcement", description: "Could not delete the announcement. Please try again.", variant: "destructive" });
+      toast({ 
+        title: toastDict.errorDeletingAnnouncement, 
+        description: toastDict.couldNotDeleteAnnouncement, 
+        variant: "destructive" 
+      });
     }
   };
 
-  if (isLoading) {
+  if (isLoading || !dict || !commonDict) {
     return (
         <div className="space-y-2">
             <div className="h-8 w-64 animate-pulse rounded-md bg-muted"></div>
@@ -76,9 +112,9 @@ const AnnouncementManagementTable = () => {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold">Manage Announcements</h2>
+        <h2 className="text-2xl font-semibold">{dict.manageTitle}</h2>
         <Button onClick={() => { setEditingAnnouncement(null); setIsCreateModalOpen(true); }}>
-          <PlusCircle className="mr-2 h-4 w-4" /> Create Announcement
+          <PlusCircle className="mr-2 h-4 w-4" /> {dict.createButton}
         </Button>
       </div>
 
@@ -88,12 +124,13 @@ const AnnouncementManagementTable = () => {
       }}>
         <DialogContent className="sm:max-w-[625px]">
           <DialogHeader>
-            <DialogTitle>{editingAnnouncement ? 'Edit Announcement' : 'Create New Announcement'}</DialogTitle>
+            <DialogTitle>{editingAnnouncement ? dict.editModalTitle : dict.createModalTitle}</DialogTitle>
             <DialogDescription>
-              {editingAnnouncement ? 'Update the details for this announcement.' : 'Compose a new internal announcement.'}
+              {editingAnnouncement ? dict.editModalDesc : dict.createModalDesc}
             </DialogDescription>
           </DialogHeader>
           <AnnouncementForm 
+            lang={lang}
             onSuccess={handleAnnouncementCreatedOrUpdated} 
             existingAnnouncement={editingAnnouncement}
           />
@@ -103,16 +140,16 @@ const AnnouncementManagementTable = () => {
       <Dialog open={!!announcementToDelete} onOpenChange={(isOpen) => !isOpen && setAnnouncementToDelete(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2"><AlertTriangle className="text-destructive"/>Confirm Deletion</DialogTitle>
+            <DialogTitle className="flex items-center gap-2"><AlertTriangle className="text-destructive"/>{dict.deleteConfirmTitle}</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete the announcement: <strong>"{announcementToDelete?.title}"</strong>? This action cannot be undone.
+               {dict.deleteConfirmDesc.replace('{title}', announcementToDelete?.title || '')}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <DialogClose asChild>
-              <Button variant="outline">Cancel</Button>
+              <Button variant="outline">{commonDict.cancel}</Button>
             </DialogClose>
-            <Button variant="destructive" onClick={handleDeleteAnnouncement}>Delete</Button>
+            <Button variant="destructive" onClick={handleDeleteAnnouncement}>{commonDict.delete}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -122,17 +159,17 @@ const AnnouncementManagementTable = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Title</TableHead>
-              <TableHead>Author</TableHead>
-              <TableHead>Created At</TableHead>
-              <TableHead>Actions</TableHead>
+              <TableHead>{dict.tableTitle}</TableHead>
+              <TableHead>{dict.tableAuthor}</TableHead>
+              <TableHead>{dict.tableCreatedAt}</TableHead>
+              <TableHead>{commonDict.actions}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {announcements.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={4} className="h-24 text-center">
-                  No announcements found. Create one!
+                  {dict.noAnnouncementsFound}
                 </TableCell>
               </TableRow>
             ) : (
@@ -143,13 +180,13 @@ const AnnouncementManagementTable = () => {
                   <TableCell>{format(new Date(ann.createdAt), 'dd MMM yyyy, HH:mm')}</TableCell>
                   <TableCell>
                     <div className="flex gap-2">
-                       <Button variant="outline" size="icon" onClick={() => openEditModal(ann)}>
+                       <Button variant="outline" size="icon" onClick={() => openEditModal(ann)} title={commonDict.edit}>
                         <Pencil className="h-4 w-4" />
-                         <span className="sr-only">Edit</span>
+                         <span className="sr-only">{commonDict.edit}</span>
                       </Button>
-                      <Button variant="destructive" size="icon" onClick={() => openDeleteConfirm(ann)}>
+                      <Button variant="destructive" size="icon" onClick={() => openDeleteConfirm(ann)} title={commonDict.delete}>
                         <Trash2 className="h-4 w-4" />
-                         <span className="sr-only">Delete</span>
+                         <span className="sr-only">{commonDict.delete}</span>
                       </Button>
                     </div>
                   </TableCell>

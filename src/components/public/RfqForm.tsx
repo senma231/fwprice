@@ -38,7 +38,13 @@ const rfqFormSchema = z.object({
 
 type RfqFormData = z.infer<typeof rfqFormSchema>;
 
-export default function RfqForm() {
+interface RfqFormProps {
+  lang: string;
+  dict: any; // from rfqForm namespace
+  commonDict: any; // from common namespace
+}
+
+export default function RfqForm({ lang, dict, commonDict }: RfqFormProps) {
   const form = useForm<RfqFormData>({
     resolver: zodResolver(rfqFormSchema),
     defaultValues: {
@@ -62,17 +68,17 @@ export default function RfqForm() {
         weight: data.weight ? Number(data.weight) : undefined,
         freightType: data.freightType as RfqInput['freightType'],
       };
-      const result = await submitRfq(rfqInput);
+      const result = await submitRfq(rfqInput); // AI message likely still in default language
       toast({
-        title: 'Inquiry Sent!',
-        description: result.message,
+        title: dict.inquirySentTitle,
+        description: result.message, // This part comes from AI, may not be translated unless AI flow is updated
       });
       form.reset();
     } catch (error) {
       console.error('RFQ submission error:', error);
       toast({
-        title: 'Submission Failed',
-        description: 'An unexpected error occurred. Please try again later.',
+        title: dict.submissionFailedTitle,
+        description: dict.submissionFailedDesc,
         variant: 'destructive',
       });
     }
@@ -87,9 +93,9 @@ export default function RfqForm() {
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Full Name</FormLabel>
+                <FormLabel>{dict.nameLabel}</FormLabel>
                 <FormControl>
-                  <Input placeholder="Your Name" {...field} />
+                  <Input placeholder={dict.namePlaceholder} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -100,9 +106,9 @@ export default function RfqForm() {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email Address</FormLabel>
+                <FormLabel>{dict.emailLabel}</FormLabel>
                 <FormControl>
-                  <Input type="email" placeholder="your.email@example.com" {...field} />
+                  <Input type="email" placeholder={dict.emailPlaceholder} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -114,9 +120,9 @@ export default function RfqForm() {
           name="company"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Company Name (Optional)</FormLabel>
+              <FormLabel>{dict.companyLabel}</FormLabel>
               <FormControl>
-                <Input placeholder="Your Company Inc." {...field} />
+                <Input placeholder={dict.companyPlaceholder} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -128,9 +134,9 @@ export default function RfqForm() {
             name="origin"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Origin</FormLabel>
+                <FormLabel>{dict.originLabel}</FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g., Shanghai, CN" {...field} />
+                  <Input placeholder={dict.originPlaceholder} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -141,9 +147,9 @@ export default function RfqForm() {
             name="destination"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Destination</FormLabel>
+                <FormLabel>{dict.destinationLabel}</FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g., Los Angeles, US" {...field} />
+                  <Input placeholder={dict.destinationPlaceholder} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -156,9 +162,9 @@ export default function RfqForm() {
             name="weight"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Estimated Weight (kg, Optional)</FormLabel>
+                <FormLabel>{dict.weightLabel}</FormLabel>
                 <FormControl>
-                  <Input type="number" placeholder="e.g., 1000" {...field} />
+                  <Input type="number" placeholder={dict.weightPlaceholder} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -169,17 +175,17 @@ export default function RfqForm() {
             name="freightType"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Freight Type (Optional)</FormLabel>
+                <FormLabel>{dict.freightTypeLabel}</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select freight type" />
+                      <SelectValue placeholder={commonDict.selectType} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="sea">Sea Freight</SelectItem>
-                    <SelectItem value="air">Air Freight</SelectItem>
-                    <SelectItem value="land">Land Freight</SelectItem>
+                    <SelectItem value="sea">{commonDict.seaFreight}</SelectItem>
+                    <SelectItem value="air">{commonDict.airFreight}</SelectItem>
+                    <SelectItem value="land">{commonDict.landFreight}</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -192,10 +198,10 @@ export default function RfqForm() {
           name="message"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Additional Details (Optional)</FormLabel>
+              <FormLabel>{dict.messageLabel}</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="Please provide any specific requirements or details about your shipment (e.g., dimensions, commodity type, preferred shipping dates)."
+                  placeholder={dict.messagePlaceholder}
                   className="resize-none"
                   rows={4}
                   {...field}
@@ -208,7 +214,7 @@ export default function RfqForm() {
         <div className="flex justify-end">
           <Button type="submit" disabled={isSubmitting} size="lg">
             <Send className="mr-2 h-5 w-5" />
-            {isSubmitting ? 'Sending Inquiry...' : 'Request Quote'}
+            {isSubmitting ? dict.submittingButton : dict.submitButton}
           </Button>
         </div>
       </form>

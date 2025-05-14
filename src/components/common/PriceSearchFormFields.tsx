@@ -20,11 +20,15 @@ import { Button } from '@/components/ui/button';
 import { Search, Building2, Globe, Weight, ArrowRightLeft } from 'lucide-react';
 
 interface PriceSearchFormFieldsProps {
-  control: Control<any>; // eslint-disable-line @typescript-eslint/no-explicit-any
+  control: Control<any>; 
   isLoading?: boolean;
+  dict: any; // From priceSearchFormFields namespace
+  commonDict: any; // From common namespace
+  searchButtonText: string;
+  searchingButtonText: string;
 }
 
-const PriceSearchFormFields: React.FC<PriceSearchFormFieldsProps> = ({ control, isLoading }) => {
+const PriceSearchFormFields: React.FC<PriceSearchFormFieldsProps> = ({ control, isLoading, dict, commonDict, searchButtonText, searchingButtonText }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
       <FormField
@@ -32,9 +36,9 @@ const PriceSearchFormFields: React.FC<PriceSearchFormFieldsProps> = ({ control, 
         name="origin"
         render={({ field }) => (
           <FormItem>
-            <FormLabel className="flex items-center"><Building2 className="mr-2 h-4 w-4 text-muted-foreground" />Origin</FormLabel>
+            <FormLabel className="flex items-center"><Building2 className="mr-2 h-4 w-4 text-muted-foreground" />{dict.originLabel}</FormLabel>
             <FormControl>
-              <Input placeholder="e.g., Shanghai, CN" {...field} />
+              <Input placeholder={dict.originPlaceholder} {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -45,9 +49,9 @@ const PriceSearchFormFields: React.FC<PriceSearchFormFieldsProps> = ({ control, 
         name="destination"
         render={({ field }) => (
           <FormItem>
-            <FormLabel className="flex items-center"><Globe className="mr-2 h-4 w-4 text-muted-foreground" />Destination</FormLabel>
+            <FormLabel className="flex items-center"><Globe className="mr-2 h-4 w-4 text-muted-foreground" />{dict.destinationLabel}</FormLabel>
             <FormControl>
-              <Input placeholder="e.g., Los Angeles, US" {...field} />
+              <Input placeholder={dict.destinationPlaceholder} {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -58,9 +62,9 @@ const PriceSearchFormFields: React.FC<PriceSearchFormFieldsProps> = ({ control, 
         name="weight"
         render={({ field }) => (
           <FormItem>
-            <FormLabel className="flex items-center"><Weight className="mr-2 h-4 w-4 text-muted-foreground" />Weight (kg)</FormLabel>
+            <FormLabel className="flex items-center"><Weight className="mr-2 h-4 w-4 text-muted-foreground" />{dict.weightLabel}</FormLabel>
             <FormControl>
-              <Input type="number" placeholder="Optional" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || undefined)} />
+              <Input type="number" placeholder={dict.weightPlaceholder} {...field} onChange={e => field.onChange(parseFloat(e.target.value) || undefined)} />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -71,17 +75,17 @@ const PriceSearchFormFields: React.FC<PriceSearchFormFieldsProps> = ({ control, 
         name="freightType"
         render={({ field }) => (
           <FormItem>
-            <FormLabel className="flex items-center"><ArrowRightLeft className="mr-2 h-4 w-4 text-muted-foreground" />Freight Type</FormLabel>
+            <FormLabel className="flex items-center"><ArrowRightLeft className="mr-2 h-4 w-4 text-muted-foreground" />{dict.freightTypeLabel}</FormLabel>
             <Select onValueChange={field.onChange} defaultValue={field.value}>
               <FormControl>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select type" />
+                  <SelectValue placeholder={commonDict.selectType} />
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                <SelectItem value="sea">Sea Freight</SelectItem>
-                <SelectItem value="air">Air Freight</SelectItem>
-                <SelectItem value="land">Land Freight</SelectItem>
+                <SelectItem value="sea">{commonDict.seaFreight}</SelectItem>
+                <SelectItem value="air">{commonDict.airFreight}</SelectItem>
+                <SelectItem value="land">{commonDict.landFreight}</SelectItem>
               </SelectContent>
             </Select>
             <FormMessage />
@@ -90,7 +94,7 @@ const PriceSearchFormFields: React.FC<PriceSearchFormFieldsProps> = ({ control, 
       />
       <Button type="submit" disabled={isLoading} className="w-full lg:w-auto">
         <Search className="mr-2 h-4 w-4" />
-        {isLoading ? 'Searching...' : 'Search Prices'}
+        {isLoading ? searchingButtonText : searchButtonText}
       </Button>
     </div>
   );

@@ -19,8 +19,7 @@ export interface User {
 export interface AuthState {
   user: User | null;
   isLoading: boolean;
-  login: (email: string, pass: string) => Promise<void>;
+  login: (email: string, pass: string) => Promise<User | null>; // Updated return type
   logout: () => Promise<void>;
   // TODO: Consider adding a helper hasPermission(scope: FeatureScope, action: PermissionAction) => boolean;
 }
-

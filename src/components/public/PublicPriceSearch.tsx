@@ -7,8 +7,8 @@ import * as z from 'zod';
 import { Form } from '@/components/ui/form';
 import PriceSearchFormFields from '@/components/common/PriceSearchFormFields';
 import PriceResultsDisplay from '@/components/common/PriceResultsDisplay';
-import type { Price, ShipmentDetails } from '@/types/freight';
-import { fetchPublicPrices } from '@/lib/mockData'; // Using mock data
+import type { Price } from '@/types/freight';
+import { fetchPublicPrices } from '@/lib/mockData'; 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 
@@ -21,7 +21,15 @@ const priceSearchSchema = z.object({
 
 type PriceSearchFormData = z.infer<typeof priceSearchSchema>;
 
-const PublicPriceSearch = () => {
+interface PublicPriceSearchProps {
+  lang: string;
+  dict: any; // from home namespace
+  commonDict: any;
+  priceSearchFormDict: any;
+  priceResultsDisplayDict: any;
+}
+
+const PublicPriceSearch = ({ lang, dict, commonDict, priceSearchFormDict, priceResultsDisplayDict }: PublicPriceSearchProps) => {
   const [prices, setPrices] = useState<Price[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [searchPerformed, setSearchPerformed] = useState(false);
@@ -37,7 +45,6 @@ const PublicPriceSearch = () => {
   const onSubmit = async (data: PriceSearchFormData) => {
     setIsLoading(true);
     setSearchPerformed(true);
-    // In a real app, call your API here
     const fetchedPrices = await fetchPublicPrices(data);
     setPrices(fetchedPrices);
     setIsLoading(false);
@@ -46,19 +53,32 @@ const PublicPriceSearch = () => {
   return (
     <Card className="shadow-xl">
       <CardHeader>
-        <CardTitle className="text-3xl font-bold text-primary">Find Your Freight Price</CardTitle>
-        <CardDescription>Enter your shipment details to get instant public quotes.</CardDescription>
+        <CardTitle className="text-3xl font-bold text-primary">{dict.findPriceTitle}</CardTitle>
+        <CardDescription>{dict.findPriceDescription}</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <PriceSearchFormFields control={form.control} isLoading={isLoading} />
+            <PriceSearchFormFields 
+              control={form.control} 
+              isLoading={isLoading} 
+              dict={priceSearchFormDict}
+              commonDict={commonDict}
+              searchButtonText={commonDict.search} // Example: "Search"
+              searchingButtonText={commonDict.loading} // Example: "Searching..."
+            />
           </form>
         </Form>
         {searchPerformed && (
           <>
             <Separator className="my-8" />
-            <PriceResultsDisplay prices={prices} isLoading={isLoading} searchPerformed={searchPerformed} />
+            <PriceResultsDisplay 
+              prices={prices} 
+              isLoading={isLoading} 
+              searchPerformed={searchPerformed}
+              dict={priceResultsDisplayDict}
+              commonDict={commonDict}
+            />
           </>
         )}
       </CardContent>

@@ -19,9 +19,11 @@ import { createAnnouncement, updateAnnouncement } from '@/lib/mockData';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from "@/hooks/use-toast";
 import { DialogFooter, DialogClose } from '@/components/ui/dialog';
+import type { Locale } from '@/lib/dictionaries';
+import { useEffect, useState } from 'react';
 
 const announcementSchema = z.object({
-  title: z.string().min(5, "Title must be at least 5 characters."),
+  title: z.string().min(5, "Title must be at least 5 characters."), // These messages can be part of dict too
   content: z.string().min(10, "Content must be at least 10 characters."),
 });
 
@@ -30,10 +32,14 @@ type AnnouncementFormData = z.infer<typeof announcementSchema>;
 interface AnnouncementFormProps {
   onSuccess: () => void;
   existingAnnouncement?: Announcement | null;
+  lang: Locale;
 }
 
-const AnnouncementForm: React.FC<AnnouncementFormProps> = ({ onSuccess, existingAnnouncement }) => {
+const AnnouncementForm: React.FC<AnnouncementFormProps> = ({ onSuccess, existingAnnouncement, lang }) => {
   const { user } = useAuth();
+  const [dict, setDict] = useState<any>(null);
+  const [commonDict, setCommonDict] = useState<any>(null);
+  
   const form = useForm<AnnouncementFormData>({
     resolver: zodResolver(announcementSchema),
     defaultValues: existingAnnouncement ? {
@@ -45,11 +51,20 @@ const AnnouncementForm: React.FC<AnnouncementFormProps> = ({ onSuccess, existing
     },
   });
 
+  useEffect(() => {
+    const loadDict = async () => {
+      const messages = (await import(`@/locales/${lang}.json`)).default;
+      setDict(messages.forms.announcement);
+      setCommonDict(messages.common);
+    };
+    loadDict();
+  }, [lang]);
+
   const { formState: {isSubmitting} } = form;
 
   const onSubmit = async (data: AnnouncementFormData) => {
-    if (!user) {
-      toast({ title: "Authentication Error", description: "You must be logged in to perform this action.", variant: "destructive"});
+    if (!user || !dict) { // Ensure dict is loaded
+      toast({ title: dict?.authError || "Authentication Error", description: dict?.authErrorDesc || "You must be logged in.", variant: "destructive"});
       return;
     }
     
@@ -62,16 +77,18 @@ const AnnouncementForm: React.FC<AnnouncementFormProps> = ({ onSuccess, existing
     try {
       if (existingAnnouncement) {
         await updateAnnouncement(existingAnnouncement.id, announcementData);
-        toast({ title: "Announcement Updated", description: "The announcement has been successfully updated."});
+        toast({ title: dict.updatedMsg, description: dict.updatedDesc});
       } else {
         await createAnnouncement(announcementData);
-        toast({ title: "Announcement Created", description: "The new announcement has been published."});
+        toast({ title: dict.createdMsg, description: dict.createdDesc});
       }
       onSuccess();
     } catch (error) {
-      toast({ title: existingAnnouncement ? "Update Failed" : "Creation Failed", description: "An error occurred. Please try again.", variant: "destructive"});
+      toast({ title: existingAnnouncement ? dict.updateFailed : dict.creationFailed, description: dict.genericError, variant: "destructive"});
     }
   };
+  
+  if (!dict || !commonDict) return <div>{commonDict?.loading || "Loading..."}</div>;
 
   return (
     <Form {...form}>
@@ -81,9 +98,9 @@ const AnnouncementForm: React.FC<AnnouncementFormProps> = ({ onSuccess, existing
           name="title"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Title</FormLabel>
+              <FormLabel>{dict.titleLabel}</FormLabel>
               <FormControl>
-                <Input placeholder="Enter announcement title" {...field} />
+                <Input placeholder={dict.titlePlaceholder} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -94,9 +111,9 @@ const AnnouncementForm: React.FC<AnnouncementFormProps> = ({ onSuccess, existing
           name="content"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Content</FormLabel>
+              <FormLabel>{dict.contentLabel}</FormLabel>
               <FormControl>
-                <Textarea placeholder="Enter announcement details..." {...field} rows={5} />
+                <Textarea placeholder={dict.contentPlaceholder} {...field} rows={5} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -104,10 +121,10 @@ const AnnouncementForm: React.FC<AnnouncementFormProps> = ({ onSuccess, existing
         />
         <DialogFooter>
             <DialogClose asChild>
-             <Button type="button" variant="outline" disabled={isSubmitting}>Cancel</Button>
+             <Button type="button" variant="outline" disabled={isSubmitting}>{commonDict.cancel}</Button>
             </DialogClose>
             <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? (existingAnnouncement ? 'Updating...' : 'Publishing...') : (existingAnnouncement ? 'Save Changes' : 'Publish Announcement')}
+                {isSubmitting ? (existingAnnouncement ? dict.updatingButton : dict.publishingButton) : (existingAnnouncement ? dict.saveButton : dict.publishButton)}
             </Button>
         </DialogFooter>
       </form>

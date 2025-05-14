@@ -10,7 +10,7 @@ import PriceResultsDisplay from '@/components/common/PriceResultsDisplay';
 import type { Price } from '@/types/freight';
 import { fetchInternalPrices } from '@/lib/mockData';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { DollarSign, Info } from 'lucide-react';
+import { DollarSign } from 'lucide-react';
 import { Separator } from '../ui/separator';
 
 const priceSearchSchema = z.object({
@@ -22,7 +22,15 @@ const priceSearchSchema = z.object({
 
 type PriceSearchFormData = z.infer<typeof priceSearchSchema>;
 
-const InternalPriceSearch = () => {
+interface InternalPriceSearchProps {
+  lang: string;
+  dict: any; // from internalPriceSearch namespace
+  commonDict: any;
+  priceSearchFormDict: any;
+  priceResultsDisplayDict: any;
+}
+
+const InternalPriceSearch = ({ lang, dict, commonDict, priceSearchFormDict, priceResultsDisplayDict }: InternalPriceSearchProps) => {
   const [prices, setPrices] = useState<Price[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [searchPerformed, setSearchPerformed] = useState(false);
@@ -48,20 +56,33 @@ const InternalPriceSearch = () => {
     <Card className="shadow-xl">
       <CardHeader>
         <CardTitle className="text-3xl font-bold text-primary flex items-center gap-2">
-          <DollarSign className="h-8 w-8" /> Internal Cost Price Lookup
+          <DollarSign className="h-8 w-8" /> {dict.title}
         </CardTitle>
-        <CardDescription>Search for internal freight cost prices.</CardDescription>
+        <CardDescription>{dict.description}</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <PriceSearchFormFields control={form.control} isLoading={isLoading} />
+            <PriceSearchFormFields 
+              control={form.control} 
+              isLoading={isLoading} 
+              dict={priceSearchFormDict}
+              commonDict={commonDict}
+              searchButtonText={dict.searchButton}
+              searchingButtonText={dict.searchingButton}
+            />
           </form>
         </Form>
         {searchPerformed && (
           <>
             <Separator className="my-8" />
-            <PriceResultsDisplay prices={prices} isLoading={isLoading} searchPerformed={searchPerformed} />
+            <PriceResultsDisplay 
+              prices={prices} 
+              isLoading={isLoading} 
+              searchPerformed={searchPerformed}
+              dict={priceResultsDisplayDict}
+              commonDict={commonDict}
+            />
           </>
         )}
       </CardContent>

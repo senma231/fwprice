@@ -9,9 +9,11 @@ interface PriceResultsDisplayProps {
   prices: Price[];
   isLoading?: boolean;
   searchPerformed?: boolean;
+  dict: any; // from priceResultsDisplay namespace
+  commonDict: any; // from common namespace
 }
 
-const PriceResultsDisplay: React.FC<PriceResultsDisplayProps> = ({ prices, isLoading, searchPerformed }) => {
+const PriceResultsDisplay: React.FC<PriceResultsDisplayProps> = ({ prices, isLoading, searchPerformed, dict, commonDict }) => {
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
@@ -35,7 +37,7 @@ const PriceResultsDisplay: React.FC<PriceResultsDisplayProps> = ({ prices, isLoa
   }
 
   if (!searchPerformed) {
-    return null; // Don't show anything if no search has been performed yet
+    return null; 
   }
   
   if (prices.length === 0) {
@@ -43,15 +45,15 @@ const PriceResultsDisplay: React.FC<PriceResultsDisplayProps> = ({ prices, isLoa
       <Card className="mt-8 text-center py-12">
         <CardContent>
           <Info className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-          <p className="text-lg font-medium">No Prices Found</p>
-          <p className="text-muted-foreground">Try adjusting your search criteria.</p>
+          <p className="text-lg font-medium">{dict.noPricesFound}</p>
+          <p className="text-muted-foreground">{dict.tryAdjustingCriteria}</p>
         </CardContent>
       </Card>
     );
   }
   
   const getCarrierIcon = (carrier?: string) => {
-    if (!carrier) return <ShipIcon className="h-5 w-5 text-muted-foreground" />; // Default
+    if (!carrier) return <ShipIcon className="h-5 w-5 text-muted-foreground" />; 
     if (carrier.toLowerCase().includes('sea') || carrier.toLowerCase().includes('ocean')) return <ShipIcon className="h-5 w-5 text-blue-500" />;
     if (carrier.toLowerCase().includes('air')) return <Plane className="h-5 w-5 text-sky-500" />;
     if (carrier.toLowerCase().includes('land') || carrier.toLowerCase().includes('truck')) return <Truck className="h-5 w-5 text-green-500" />;
@@ -61,16 +63,16 @@ const PriceResultsDisplay: React.FC<PriceResultsDisplayProps> = ({ prices, isLoa
 
   return (
     <div className="mt-8">
-       <h2 className="text-2xl font-semibold mb-4">Search Results</h2>
+       <h2 className="text-2xl font-semibold mb-4">{dict.searchResults}</h2>
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Origin</TableHead>
-            <TableHead>Destination</TableHead>
-            <TableHead>Carrier</TableHead>
-            <TableHead>Price</TableHead>
-            <TableHead>Validity</TableHead>
-            <TableHead>Type</TableHead>
+            <TableHead>{commonDict.origin}</TableHead>
+            <TableHead>{commonDict.destination}</TableHead>
+            <TableHead>{dict.carrier}</TableHead>
+            <TableHead>{dict.price}</TableHead>
+            <TableHead>{dict.validity}</TableHead>
+            <TableHead>{dict.type}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -97,7 +99,7 @@ const PriceResultsDisplay: React.FC<PriceResultsDisplayProps> = ({ prices, isLoa
               </TableCell>
               <TableCell>
                 <Badge variant={price.type === 'public' ? 'secondary' : 'default'}>
-                  {price.type === 'public' ? 'Public' : 'Internal'}
+                  {price.type === 'public' ? dict.public : dict.internal}
                 </Badge>
               </TableCell>
             </TableRow>
