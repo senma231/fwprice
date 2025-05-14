@@ -1,6 +1,9 @@
 import PublicPriceSearch from '@/components/public/PublicPriceSearch';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Image from 'next/image';
+import RfqForm from '@/components/public/RfqForm';
+import { Separator } from '@/components/ui/separator';
+import { MailQuestion } from 'lucide-react';
 
 export default function HomePage() {
   return (
@@ -15,6 +18,28 @@ export default function HomePage() {
       </section>
       
       <PublicPriceSearch />
+
+      <Separator className="my-16" />
+
+      <section className="space-y-8 py-8">
+        <div className="text-center">
+          <MailQuestion className="mx-auto h-12 w-12 text-primary mb-4" />
+          <h2 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl">
+            Need a Custom Quote?
+          </h2>
+          <p className="mt-4 max-w-3xl mx-auto text-lg text-foreground/80">
+            For bulk shipments, special requirements, or to get the most competitive rates, please fill out the form below.
+            Our sales team will contact you shortly with a personalized, preferential offer.
+          </p>
+        </div>
+        <Card className="max-w-3xl mx-auto shadow-xl">
+          <CardContent className="pt-6">
+            <RfqForm />
+          </CardContent>
+        </Card>
+      </section>
+
+      <Separator className="my-16" />
 
       <section className="grid md:grid-cols-3 gap-8 my-12">
         <Card>
@@ -48,3 +73,4 @@ export default function HomePage() {
     </div>
   );
 }
+
