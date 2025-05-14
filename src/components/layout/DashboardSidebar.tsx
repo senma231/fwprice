@@ -13,6 +13,7 @@ import {
   UploadCloud,
   UserPlus2,
   FileText,
+  ClipboardList, // Added for RFQ Management
 } from 'lucide-react';
 import {
   Sidebar,
@@ -40,6 +41,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { href: '/dashboard', label: 'Overview', icon: LayoutDashboard, role: 'agent' },
   { href: '/dashboard/internal-prices', label: 'Internal Prices', icon: DollarSign, role: 'agent' },
+  { href: '/dashboard/admin/rfq-management', label: 'RFQ Management', icon: ClipboardList, role: 'admin' },
   { href: '/dashboard/admin/manage-prices', label: 'Manage Prices', icon: FilePlus2, role: 'admin' },
   { href: '/dashboard/admin/user-management', label: 'User Management', icon: Users2, role: 'admin' },
   { href: '/dashboard/admin/announcement-management', label: 'Announcements', icon: Megaphone, role: 'admin' },
@@ -55,7 +57,7 @@ const DashboardSidebar = () => {
         {/* SidebarHeader removed */}
         <SidebarContent>
           <SidebarMenu>
-            {[...Array(5)].map((_, i) => <SidebarMenuSkeleton key={i} showIcon />)}
+            {[...Array(6)].map((_, i) => <SidebarMenuSkeleton key={i} showIcon />)} {/* Increased array size for new item */}
           </SidebarMenu>
         </SidebarContent>
       </Sidebar>

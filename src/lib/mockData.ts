@@ -1,6 +1,8 @@
 import type { Price } from '@/types/freight';
 import type { User } from '@/types/auth';
 import type { Announcement } from '@/types/announcement';
+import type { RfqSubmission } from '@/types/rfq'; // Added RFQ type
+import type { RfqInput } from '@/ai/flows/submit-rfq-flow'; // To use for saving RFQ
 
 export const mockPrices: Price[] = [
   {
@@ -92,6 +94,38 @@ export const mockAnnouncements: Announcement[] = [
   },
 ];
 
+export const mockRfqs: RfqSubmission[] = [
+    {
+        id: 'rfq1',
+        submissionId: 'RFQ-1690000000000-ABCDE',
+        name: 'John Doe',
+        email: 'john.doe@example.com',
+        company: 'Doe Industries',
+        origin: 'New York, US',
+        destination: 'London, UK',
+        weight: 1500,
+        freightType: 'air',
+        message: 'Need urgent air freight quote for machinery parts. Dimensions: 2x1x1m.',
+        submittedAt: new Date('2024-07-25T09:30:00Z'),
+        status: 'New',
+    },
+    {
+        id: 'rfq2',
+        submissionId: 'RFQ-1690000120000-FGHIJ',
+        name: 'Jane Smith',
+        email: 'jane.smith@shippingcorp.com',
+        company: 'Shipping Corp Ltd.',
+        origin: 'Shanghai, CN',
+        destination: 'Los Angeles, US',
+        weight: 22000,
+        freightType: 'sea',
+        message: 'Requesting quote for a 40ft container of electronics. Regular shipments expected.',
+        submittedAt: new Date('2024-07-24T15:45:00Z'),
+        status: 'Contacted',
+    }
+];
+
+
 // Simulate API delay
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -180,4 +214,35 @@ export const deleteAnnouncement = async (annId: string): Promise<boolean> => {
     return true;
   }
   return false;
+};
+
+// RFQ Management Functions
+export const fetchRfqs = async (): Promise<RfqSubmission[]> => {
+  await delay(400);
+  // Sort by newest first
+  return [...mockRfqs].sort((a, b) => b.submittedAt.getTime() - a.submittedAt.getTime());
+};
+
+export const saveRfqSubmission = async (rfqData: RfqInput, submissionId: string): Promise<RfqSubmission> => {
+  await delay(200);
+  const newRfq: RfqSubmission = {
+    ...rfqData,
+    id: `rfq${mockRfqs.length + 1}`, // Internal DB ID
+    submissionId, // User-facing ID
+    submittedAt: new Date(),
+    status: 'New',
+    freightType: rfqData.freightType || '', // ensure it's not undefined
+  };
+  mockRfqs.unshift(newRfq); // Add to the beginning of the array
+  return newRfq;
+};
+
+export const updateRfqStatus = async (rfqId: string, status: RfqSubmission['status']): Promise<RfqSubmission | null> => {
+  await delay(200);
+  const rfqIndex = mockRfqs.findIndex(r => r.id === rfqId);
+  if (rfqIndex > -1) {
+    mockRfqs[rfqIndex].status = status;
+    return mockRfqs[rfqIndex];
+  }
+  return null;
 };

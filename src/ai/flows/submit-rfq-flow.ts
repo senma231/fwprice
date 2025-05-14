@@ -9,6 +9,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { saveRfqSubmission } from '@/lib/mockData'; // Import function to save RFQ
 
 const RfqInputSchema = z.object({
   name: z.string().min(1, "Name is required."),
@@ -36,7 +37,7 @@ export async function submitRfq(input: RfqInput): Promise<RfqOutput> {
 const rfqConfirmationPrompt = ai.definePrompt({
   name: 'rfqConfirmationPrompt',
   input: { schema: RfqInputSchema },
-  output: { schema: RfqOutputSchema },
+  output: { schema: RfqOutputSchema }, // The prompt itself will only generate the 'message' part.
   prompt: `You are a helpful sales assistant for FreightWise, a freight logistics company.
 A potential customer has just submitted a Request for Quotation (RFQ).
 Your task is to generate a friendly and professional confirmation message for them.
@@ -56,13 +57,14 @@ Destination: {{destination}}
 Generate a confirmation message that:
 1. Thanks the customer by name for their inquiry.
 2. Acknowledges receipt of their RFQ.
-3. Mentions a unique submission ID (which will be provided to you).
+3. Mentions that a unique submission ID will be provided to them by our system (do not generate it yourself).
 4. Assures them that the sales team will review their details and contact them shortly with a personalized, preferential quote.
 5. If they mentioned specific details like weight or freight type, briefly acknowledge that those have been noted.
 6. Keep the tone positive and reassuring.
 7. Reiterate that a sales representative will contact them to discuss potential preferential pricing.
 
-Return the response in the format specified by the RfqOutputSchema. The 'message' field should contain your generated confirmation message. The 'submissionId' will be injected by the flow.
+Return ONLY the generated confirmation message text. The submission ID will be handled by the system.
+Your response should be just the message string.
 `,
 });
 
@@ -79,23 +81,46 @@ const rfqSubmissionFlow = ai.defineFlow(
 
     const submissionId = `RFQ-${Date.now()}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
 
-    // Call the AI prompt to generate the confirmation message
-    const { output } = await rfqConfirmationPrompt(input);
-
-    if (!output) {
-      // Fallback message in case the AI fails to generate a response
-      console.error('AI failed to generate RFQ confirmation message. Using fallback.');
-      return {
-        message: `Thank you for your inquiry, ${input.name}! Your request (ID: ${submissionId}) has been received. Our sales team will review your details and contact you shortly with a personalized, preferential quote. We have noted your shipment from ${input.origin} to ${input.destination}. A sales representative will be in touch soon to discuss potential preferential pricing.`,
-        submissionId: submissionId,
-      };
+    // Save the RFQ to our mock database
+    try {
+      await saveRfqSubmission(input, submissionId);
+      console.log(`RFQ ${submissionId} saved to mock database.`);
+    } catch (error) {
+      console.error(`Failed to save RFQ ${submissionId} to mock database:`, error);
+      // Decide if this is a critical failure or if we should proceed with notifying the user
     }
 
-    // The prompt itself doesn't know the submissionId, so we add it here.
-    // The prompt is instructed to generate the message part, and the flow constructs the final output.
+    // Call the AI prompt to generate the confirmation message
+    const { output: aiGeneratedContent } = await rfqConfirmationPrompt(input);
+
+    let confirmationMessage: string;
+
+    if (aiGeneratedContent && aiGeneratedContent.message) {
+      // The prompt is expected to return an object with a 'message' field based on its OutputSchema.
+      // However, the prompt text instructs it to return only the message string.
+      // We handle both cases: if it returns {message: "..."} or just "...".
+      confirmationMessage = typeof aiGeneratedContent.message === 'string' ? aiGeneratedContent.message : (aiGeneratedContent as unknown as string);
+      // Ensure the submission ID is mentioned in the message if the AI didn't do it.
+      if (!confirmationMessage.includes(submissionId)) {
+         // A more robust way would be to instruct the AI to include a placeholder like {{submissionId}}
+         // and then replace it here. For now, we append.
+         confirmationMessage = `${confirmationMessage} Your submission ID is ${submissionId}.`;
+      }
+    } else if (typeof aiGeneratedContent === 'string') {
+        confirmationMessage = aiGeneratedContent;
+        if (!confirmationMessage.includes(submissionId)) {
+           confirmationMessage = `${confirmationMessage} Your submission ID is ${submissionId}.`;
+        }
+    }
+    else {
+      // Fallback message in case the AI fails to generate a response
+      console.error('AI failed to generate RFQ confirmation message or returned unexpected format. Using fallback.');
+      confirmationMessage = `Thank you for your inquiry, ${input.name}! Your request (ID: ${submissionId}) has been received. Our sales team will review your details and contact you shortly with a personalized, preferential quote. We have noted your shipment from ${input.origin} to ${input.destination}. A sales representative will be in touch soon to discuss potential preferential pricing.`;
+    }
+    
     return {
-      message: output.message, // Use the AI-generated message
-      submissionId: submissionId, // Add the generated submissionId
+      message: confirmationMessage,
+      submissionId: submissionId,
     };
   }
 );
