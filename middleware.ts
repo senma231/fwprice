@@ -3,9 +3,9 @@ import { match } from '@formatjs/intl-localematcher';
 import Negotiator from 'negotiator';
 
 let locales = ['en', 'zh'];
-let defaultLocale = 'zh'; // Changed default locale to Chinese
+let defaultLocale = 'zh'; // Default locale set to Chinese
 
-// Get the preferred locale, similar to above or using a library
+// Get the preferred locale
 function getLocale(request: NextRequest): string {
   const negotiatorHeaders: Record<string, string> = {};
   request.headers.forEach((value, key) => (negotiatorHeaders[key] = value));
@@ -33,22 +33,23 @@ export function middleware(request: NextRequest) {
   if (pathnameIsMissingLocale) {
     const locale = getLocale(request);
 
-    // e.g. incoming request is /products
-    // The new URL is now /zh/products (if 'zh' is the locale)
+    // Construct the new path with the determined locale
+    // If the original pathname is '/', redirect to `/${locale}/`
+    // Otherwise, redirect to `/${locale}${pathname}`
+    const newPath = pathname === '/' ? `/${locale}/` : `/${locale}${pathname}`;
+    
     return NextResponse.redirect(
-      new URL(
-        `/${locale}${pathname.startsWith('/') ? '' : '/'}${pathname}`,
-        request.url
-      )
+      new URL(newPath, request.url)
     );
   }
+
+  // If a locale is already present in the pathname, continue to the requested path
+  return NextResponse.next();
 }
 
 export const config = {
   matcher: [
-    // Skip all internal paths (_next, api, favicon.ico)
+    // Skip all internal paths (_next, api, favicon.ico, images)
     '/((?!_next|api|favicon.ico|images).*)',
-    // Optional: only run on root (/) URL
-    // '/'
   ],
 };
