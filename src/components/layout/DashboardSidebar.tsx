@@ -17,7 +17,6 @@ import {
 import {
   Sidebar,
   SidebarContent,
-  SidebarHeader,
   SidebarFooter,
   SidebarMenu,
   SidebarMenuItem,
@@ -53,9 +52,7 @@ const DashboardSidebar = () => {
   if (isLoading || !user) {
     return (
       <Sidebar>
-        <SidebarHeader>
-          <Logo size="sm" />
-        </SidebarHeader>
+        {/* SidebarHeader removed */}
         <SidebarContent>
           <SidebarMenu>
             {[...Array(5)].map((_, i) => <SidebarMenuSkeleton key={i} showIcon />)}
@@ -76,10 +73,8 @@ const DashboardSidebar = () => {
 
   return (
     <Sidebar>
-      <SidebarHeader>
-        <Logo size="md" />
-      </SidebarHeader>
-      <SidebarContent>
+      {/* SidebarHeader removed */}
+      <SidebarContent className="pt-4"> {/* Added padding-top to compensate for removed header */}
         <SidebarMenu>
           {filteredNavItems.map((item) => (
             <SidebarMenuItem key={item.href}>
