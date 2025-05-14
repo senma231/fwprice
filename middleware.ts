@@ -3,7 +3,7 @@ import { match } from '@formatjs/intl-localematcher';
 import Negotiator from 'negotiator';
 
 let locales = ['en', 'zh'];
-let defaultLocale = 'en';
+let defaultLocale = 'zh'; // Changed default locale to Chinese
 
 // Get the preferred locale, similar to above or using a library
 function getLocale(request: NextRequest): string {
@@ -34,7 +34,7 @@ export function middleware(request: NextRequest) {
     const locale = getLocale(request);
 
     // e.g. incoming request is /products
-    // The new URL is now /en-US/products
+    // The new URL is now /zh/products (if 'zh' is the locale)
     return NextResponse.redirect(
       new URL(
         `/${locale}${pathname.startsWith('/') ? '' : '/'}${pathname}`,

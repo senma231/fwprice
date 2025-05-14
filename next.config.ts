@@ -20,7 +20,7 @@ const nextConfig: NextConfig = {
   },
   i18n: {
     locales: ['en', 'zh'],
-    defaultLocale: 'en',
+    defaultLocale: 'zh', // Changed default locale to Chinese
   },
 };
 

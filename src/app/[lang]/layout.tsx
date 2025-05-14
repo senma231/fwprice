@@ -17,20 +17,16 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
 });
 
-// export const metadata: Metadata = { // Metadata generation needs to be dynamic for lang
-//   title: 'FreightWise - Smart Freight Quoting',
-//   description: 'Your trusted partner for freight price lookup and management.',
-// };
-
 export async function generateMetadata({ params }: { params: { lang: Locale } }): Promise<Metadata> {
   const dict = await getDictionary(params.lang);
   return {
-    title: `${dict.common.appName} - Smart Freight Quoting`, // Example, adjust based on JSON
-    description: dict.home.subtitle, // Example
+    title: `${dict.common.appName} - Smart Freight Quoting`,
+    description: dict.home.subtitle,
   };
 }
 
 export async function generateStaticParams() {
+  // Ensure both 'en' and 'zh' are generated if not already covered by default locale logic
   return [{ lang: 'en' }, { lang: 'zh' }];
 }
 
