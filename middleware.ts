@@ -1,3 +1,4 @@
+
 import { NextRequest, NextResponse } from 'next/server';
 import { match } from '@formatjs/intl-localematcher';
 import Negotiator from 'negotiator';
@@ -32,21 +33,22 @@ export function middleware(request: NextRequest) {
   // Redirect if there is no locale
   if (pathnameIsMissingLocale) {
     const locale = getLocale(request);
+    
+    const newUrl = request.nextUrl.clone(); // Clone the original request URL
 
-    let newPath;
     if (pathname === '/') {
-      newPath = `/${locale}`; // Redirect to /locale (no trailing slash)
+      newUrl.pathname = `/${locale}`; // e.g., /zh
     } else {
-      // Ensures that if pathname is already /foo, it becomes /locale/foo
-      newPath = `/${locale}${pathname}`;
+      // For other paths, prepend the locale.
+      // request.nextUrl.pathname always starts with '/', so `/${locale}${pathname}` is correct.
+      newUrl.pathname = `/${locale}${pathname}`; // e.g., /zh/about
     }
     
-    // Normalize slashes (e.g. ///foo -> /foo) and ensure a single leading slash
-    const normalizedPath = ('/' + newPath).replace(/\/+/g, '/');
+    // Clean up any potential double slashes, just in case.
+    // e.g. if newUrl.pathname became /zh//about, it becomes /zh/about
+    newUrl.pathname = newUrl.pathname.replace(/\/\//g, '/');
     
-    return NextResponse.redirect(
-      new URL(normalizedPath, request.url)
-    );
+    return NextResponse.redirect(newUrl);
   }
 
   // If a locale is already present in the pathname, continue to the requested path
