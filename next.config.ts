@@ -16,12 +16,15 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'placehold.co', // Added for placeholder images
+        port: '',
+        pathname: '/**',
+      }
     ],
   },
-  i18n: {
-    locales: ['en', 'zh'],
-    defaultLocale: 'zh', // Changed default locale to Chinese
-  },
+  // The i18n object is removed as custom middleware handles i18n routing.
 };
 
 export default nextConfig;
