@@ -1,7 +1,8 @@
+
 'use client'; 
 
 import type { ReactNode } from 'react';
-import { useEffect } from 'react';
+import { useEffect, use } from 'react'; // Added use
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import DashboardSidebar from '@/components/layout/DashboardSidebar';
@@ -11,12 +12,13 @@ import type { Locale } from '@/lib/dictionaries';
 
 export default function DashboardLayout({ 
   children,
-  params
+  params // params might be a Promise here
 }: { 
   children: ReactNode,
-  params: { lang: Locale }
+  params: Promise<{ lang: Locale }> // Updated to reflect it can be a Promise
 }) {
-  const { lang } = params; // Destructure lang from params
+  const resolvedParams = use(params); // Unwrap the params Promise
+  const { lang } = resolvedParams; // Destructure lang from resolvedParams
   const { user, isLoading } = useAuth();
   const router = useRouter();
   const pathname = usePathname(); // Returns path without locale, e.g. /dashboard
