@@ -22,13 +22,13 @@ const InternalAnnouncements = ({ lang }: InternalAnnouncementsProps) => {
     const loadDictionaryAndData = async () => {
       setIsLoading(true);
       try {
-        const localeDict = (await import(`@/locales/${lang}.json`)).default;
+        const localeDict = (await import(`../../../locales/${lang}.json`)).default;
         setDict(localeDict.internalAnnouncements);
         const data = await fetchAnnouncements();
         setAnnouncements(data);
       } catch (error) {
         console.error("Failed to load announcements or dictionary", error);
-        const fallbackDict = (await import(`@/locales/en.json`)).default;
+        const fallbackDict = (await import(`../../../locales/en.json`)).default;
         setDict(fallbackDict.internalAnnouncements); // Fallback
       }
       setIsLoading(false);

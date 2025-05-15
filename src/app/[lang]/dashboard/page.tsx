@@ -23,7 +23,8 @@ export default function DashboardPage({ params }: DashboardPageProps) {
 
   useEffect(() => {
     const loadDict = async () => {
-      const messages = (await import(`@/locales/${params.lang}.json`)).default;
+      // Corrected path: from src/app/[lang]/dashboard/page.tsx to root/locales/
+      const messages = (await import(`../../../../locales/${params.lang}.json`)).default;
       setDict(messages.dashboardPage);
     };
     loadDict();
