@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -50,12 +51,12 @@ const DashboardSidebar = ({ lang }: DashboardSidebarProps) => {
       try {
         const DYNAMIC_IMPORT_DELAY = 0; //ms
         await new Promise(resolve => setTimeout(resolve, DYNAMIC_IMPORT_DELAY));
-        const loadedDict = (await import(`@/locales/${lang}.json`)).default;
+        const loadedDict = (await import(`../../../locales/${lang}.json`)).default;
         setDict(loadedDict.dashboardSidebar);
       } catch (error) {
         console.error("Failed to load dictionary for sidebar:", error);
         // Fallback or error handling
-        const fallbackDict = (await import(`@/locales/en.json`)).default;
+        const fallbackDict = (await import(`../../../locales/en.json`)).default;
         setDict(fallbackDict.dashboardSidebar);
       }
       setIsDictLoading(false);
