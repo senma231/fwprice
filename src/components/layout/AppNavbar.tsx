@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -21,18 +22,16 @@ interface AppNavbarProps {
   lang: string;
   dict: any; // From appNavbar namespace
   commonDict: any; // From common namespace
+  toastDict: any; // From toasts namespace
 }
 
-const AppNavbar = ({ lang, dict, commonDict }: AppNavbarProps) => {
+const AppNavbar = ({ lang, dict, commonDict, toastDict }: AppNavbarProps) => {
   const { user, logout, isLoading } = useAuth();
   const { toast } = useToast();
 
   const handleLogout = async () => {
     await logout(); // AuthContext logout doesn't show toast anymore
-    // Fetch toast messages from a dictionary if available, or use defaults
-    // For simplicity, using dict passed here. Ideally, toast dict comes from a shared place or specific toast dict.
-    // Assuming toast messages are now in commonDict or a dedicated toastDict
-    const toastDict = (await import(`@/locales/${lang}.json`)).default.toasts;
+    // Use the toastDict prop directly
     toast({
         title: toastDict.logoutTitle || "Logged Out",
         description: toastDict.logoutDesc || "You have been successfully logged out."

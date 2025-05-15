@@ -43,7 +43,7 @@ export default async function RootLayout({
     <html lang={params.lang} suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}>
         <AuthProvider>
-          <AppNavbar lang={params.lang} dict={dict.appNavbar} commonDict={dict.common} />
+          <AppNavbar lang={params.lang} dict={dict.appNavbar} commonDict={dict.common} toastDict={dict.toasts} />
           <main className="flex-grow container py-8">
             {children}
           </main>
