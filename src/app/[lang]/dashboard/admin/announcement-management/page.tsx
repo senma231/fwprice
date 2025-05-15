@@ -1,3 +1,4 @@
+
 'use client';
 
 import AnnouncementManagementTable from '@/components/admin/AnnouncementManagementTable';
@@ -13,6 +14,7 @@ interface AnnouncementManagementPageProps {
 }
 
 export default function AnnouncementManagementPage({ params }: AnnouncementManagementPageProps) {
+  const { lang } = params; // Destructure lang from params
   const { user, isLoading: authIsLoading } = useAuth();
   const router = useRouter();
   const [dict, setDict] = useState<any>(null);
@@ -21,19 +23,19 @@ export default function AnnouncementManagementPage({ params }: AnnouncementManag
   useEffect(() => {
     const loadDict = async () => {
       setIsLoading(true);
-      // Corrected relative path to the locales directory
-      const messages = (await import(`../../../../../../locales/${params.lang}.json`)).default;
+      // Corrected relative path
+      const messages = (await import(`../../../../../../locales/${lang}.json`)).default;
       setDict(messages.adminPages.announcementManagement);
       setIsLoading(false);
     };
     loadDict();
-  }, [params.lang]);
+  }, [lang]); // Use destructured lang in dependency array
 
   useEffect(() => {
     if (!authIsLoading && user?.role !== 'admin') {
-      router.push(`/${params.lang}/dashboard`);
+      router.push(`/${lang}/dashboard`);
     }
-  }, [user, authIsLoading, router, params.lang]);
+  }, [user, authIsLoading, router, lang]); // Use destructured lang in dependency array
 
   if (authIsLoading || isLoading || !dict || user?.role !== 'admin') {
     return <div className="text-center py-10">Loading or unauthorized...</div>;
@@ -51,7 +53,7 @@ export default function AnnouncementManagementPage({ params }: AnnouncementManag
             </CardDescription>
         </CardHeader>
       </Card>
-      <AnnouncementManagementTable lang={params.lang} />
+      <AnnouncementManagementTable lang={lang} /> {/* Use destructured lang */}
     </div>
   );
 }
