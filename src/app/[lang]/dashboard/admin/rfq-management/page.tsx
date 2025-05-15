@@ -1,18 +1,22 @@
+
 'use client';
 
 import RfqManagementTable from '@/components/admin/RfqManagementTable';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, use } from 'react'; // Added use
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ClipboardList } from 'lucide-react';
 import type { Locale } from '@/lib/dictionaries';
 
 interface RfqManagementPageProps {
-  params: { lang: Locale };
+  params: Promise<{ lang: Locale }>; // Updated to Promise
 }
 
 export default function RfqManagementPage({ params }: RfqManagementPageProps) {
+  const resolvedParams = use(params); // Unwrap the params Promise
+  const { lang } = resolvedParams; // Destructure lang from resolvedParams
+
   const { user, isLoading: authIsLoading } = useAuth();
   const router = useRouter();
   const [dict, setDict] = useState<any>(null);
@@ -22,18 +26,18 @@ export default function RfqManagementPage({ params }: RfqManagementPageProps) {
     const loadDict = async () => {
       setIsLoading(true);
       // Corrected relative path to the locales directory
-      const messages = (await import(`../../../../../../locales/${params.lang}.json`)).default;
+      const messages = (await import(`../../../../../../locales/${lang}.json`)).default; // Use resolved lang
       setDict(messages.adminPages.rfqManagement);
       setIsLoading(false);
     };
     loadDict();
-  }, [params.lang]);
+  }, [lang]); // Use resolved lang in dependency array
 
   useEffect(() => {
     if (!authIsLoading && user?.role !== 'admin') {
-      router.push(`/${params.lang}/dashboard`);
+      router.push(`/${lang}/dashboard`); // Use resolved lang
     }
-  }, [user, authIsLoading, router, params.lang]);
+  }, [user, authIsLoading, router, lang]); // Use resolved lang in dependency array
 
   if (authIsLoading || isLoading || !dict || user?.role !== 'admin') {
     return <div className="text-center py-10">Loading or unauthorized...</div>;
@@ -51,7 +55,7 @@ export default function RfqManagementPage({ params }: RfqManagementPageProps) {
             </CardDescription>
         </CardHeader>
       </Card>
-      <RfqManagementTable lang={params.lang} />
+      <RfqManagementTable lang={lang} /> {/* Use resolved lang */}
     </div>
   );
 }
