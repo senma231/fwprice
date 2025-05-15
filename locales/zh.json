@@ -95,7 +95,8 @@
     "title": "内部成本价格查询",
     "description": "搜索内部货运成本价格。",
     "searchButton": "搜索价格",
-    "searchingButton": "搜索中..."
+    "searchingButton": "搜索中...",
+    "latestInternalPricesTitle": "最新内部成本价 (前10条)"
   },
   "priceSearchFormFields": {
     "originLabel": "始发地",
@@ -132,8 +133,8 @@
     "weightPlaceholder": "例如：1000",
     "freightTypeLabel": "货运类型 (可选)",
     "messageLabel": "附加详情 (可选)",
-    "messagePlaceholder": "请提供有关您货物的任何具体要求或详细信息（例如：尺寸、商品类型、首选运输日期）。",
-    "submitButton": "请求报价",
+    "messagePlaceholder": "请提供有关您货物的任何具体要求或详细信息（例如：尺寸、商品类型、首选运输日期）。我们的销售团队将与您联系以提供优惠报价。",
+    "submitButton": "请求优惠报价",
     "submittingButton": "发送询价中...",
     "inquirySentTitle": "询价已发送！",
     "submissionFailedTitle": "提交失败",
@@ -313,3 +314,5 @@
       "couldNotDeleteUser": "无法删除用户。请重试。"
   }
 }
+
+    

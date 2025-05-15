@@ -95,7 +95,8 @@
     "title": "Internal Cost Price Lookup",
     "description": "Search for internal freight cost prices.",
     "searchButton": "Search Prices",
-    "searchingButton": "Searching..."
+    "searchingButton": "Searching...",
+    "latestInternalPricesTitle": "Latest Internal Prices (Top 10)"
   },
   "priceSearchFormFields": {
     "originLabel": "Origin",
@@ -132,8 +133,8 @@
     "weightPlaceholder": "e.g., 1000",
     "freightTypeLabel": "Freight Type (Optional)",
     "messageLabel": "Additional Details (Optional)",
-    "messagePlaceholder": "Please provide any specific requirements or details about your shipment (e.g., dimensions, commodity type, preferred shipping dates).",
-    "submitButton": "Request Quote",
+    "messagePlaceholder": "Please provide any specific requirements or details about your shipment (e.g., dimensions, commodity type, preferred shipping dates). Our sales team will get in touch with a preferential offer.",
+    "submitButton": "Request Preferential Quote",
     "submittingButton": "Sending Inquiry...",
     "inquirySentTitle": "Inquiry Sent!",
     "submissionFailedTitle": "Submission Failed",
@@ -313,3 +314,5 @@
       "couldNotDeleteUser": "Could not delete the user. Please try again."
   }
 }
+
+    
