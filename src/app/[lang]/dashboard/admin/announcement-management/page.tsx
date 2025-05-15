@@ -4,17 +4,19 @@
 import AnnouncementManagementTable from '@/components/admin/AnnouncementManagementTable';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState, use } from 'react'; // Added React and use
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Megaphone } from 'lucide-react';
 import type { Locale } from '@/lib/dictionaries';
 
 interface AnnouncementManagementPageProps {
-  params: { lang: Locale };
+  params: Promise<{ lang: Locale }>; // Changed params to be a Promise
 }
 
 export default function AnnouncementManagementPage({ params }: AnnouncementManagementPageProps) {
-  const { lang } = params; // Destructure lang from params
+  const resolvedParams = use(params); // Unwrap the params Promise
+  const { lang } = resolvedParams; // Destructure lang from resolvedParams
+
   const { user, isLoading: authIsLoading } = useAuth();
   const router = useRouter();
   const [dict, setDict] = useState<any>(null);

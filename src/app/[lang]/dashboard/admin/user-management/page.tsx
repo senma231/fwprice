@@ -21,7 +21,8 @@ export default function UserManagementPage({ params }: UserManagementPageProps) 
   useEffect(() => {
     const loadDict = async () => {
       setIsLoading(true);
-      const messages = (await import(`@/locales/${params.lang}.json`)).default;
+      // Corrected relative path to the locales directory
+      const messages = (await import(`../../../../../../locales/${params.lang}.json`)).default;
       setDict(messages.adminPages.userManagement);
       setIsLoading(false);
     };
