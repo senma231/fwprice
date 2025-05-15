@@ -1,3 +1,4 @@
+
 'use client';
 
 import PriceManagementTable from '@/components/admin/PriceManagementTable';
@@ -23,7 +24,8 @@ export default function ManagePricesPage({ params }: ManagePricesPageProps) {
   useEffect(() => {
     const loadDict = async () => {
       setIsLoading(true);
-      const messages = (await import(`@/locales/${params.lang}.json`)).default;
+      // Corrected relative path to the locales directory
+      const messages = (await import(`../../../../../../locales/${params.lang}.json`)).default;
       setDict(messages.adminPages.priceManagement);
       setIsLoading(false);
     };
