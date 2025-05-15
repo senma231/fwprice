@@ -38,7 +38,8 @@ const AnnouncementManagementTable = ({ lang }: AnnouncementManagementTableProps)
     const loadResources = async () => {
       setIsLoading(true);
       try {
-        const localeDict = (await import(`@/locales/${lang}.json`)).default;
+        // Corrected relative path
+        const localeDict = (await import(`../../../locales/${lang}.json`)).default;
         setDict(localeDict.adminPages.announcementManagement);
         setCommonDict(localeDict.common);
         setToastDict(localeDict.toasts);
@@ -48,7 +49,8 @@ const AnnouncementManagementTable = ({ lang }: AnnouncementManagementTableProps)
       } catch (error) {
         console.error("Failed to load resources", error);
         // Fallback to English if dictionary loading fails
-        const enDict = (await import(`@/locales/en.json`)).default;
+        // Corrected relative path for fallback
+        const enDict = (await import(`../../../locales/en.json`)).default;
         setDict(enDict.adminPages.announcementManagement);
         setCommonDict(enDict.common);
         setToastDict(enDict.toasts);
