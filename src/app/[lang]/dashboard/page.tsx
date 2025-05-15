@@ -1,34 +1,32 @@
+
 'use client'; // Keep as client component due to useAuth hook
 
 import InternalAnnouncements from '@/components/dashboard/InternalAnnouncements';
 import { useAuth } from '@/hooks/useAuth';
 import { Card } from '@/components/ui/card';
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, use } from 'react'; // Added use
 import type { Locale } from '@/lib/dictionaries';
 
-// This page is a client component because of `useAuth`.
-// To use a dictionary, it needs to be fetched and passed, or loaded client-side.
-// For simplicity in this refactor, if this page needs translations beyond what `InternalAnnouncements` handles,
-// the dictionary would need to be loaded here or passed from `DashboardLayout`.
-// Let's assume `DashboardLayout` passes relevant dict parts if needed, or this component loads its own.
-
 interface DashboardPageProps {
-  params: { lang: Locale };
+  params: Promise<{ lang: Locale }>; // Updated to Promise
 }
 
 export default function DashboardPage({ params }: DashboardPageProps) {
+  const resolvedParams = use(params); // Unwrap the params Promise
+  const { lang } = resolvedParams; // Destructure lang from resolvedParams
+
   const { user } = useAuth();
   const [dict, setDict] = useState<any>(null);
 
   useEffect(() => {
     const loadDict = async () => {
       // Corrected path: from src/app/[lang]/dashboard/page.tsx to root/locales/
-      const messages = (await import(`../../../../locales/${params.lang}.json`)).default;
+      const messages = (await import(`../../../../locales/${lang}.json`)).default; // Use destructured lang
       setDict(messages.dashboardPage);
     };
     loadDict();
-  }, [params.lang]);
+  }, [lang]); // Use destructured lang in dependency array
 
   if (!dict) {
     return <div className="text-center py-10">Loading...</div>; // Or a skeleton
@@ -58,7 +56,7 @@ export default function DashboardPage({ params }: DashboardPageProps) {
         </div>
       </Card>
       
-      <InternalAnnouncements lang={params.lang} />
+      <InternalAnnouncements lang={lang} /> {/* Use destructured lang */}
     </div>
   );
 }
