@@ -53,7 +53,8 @@ const AnnouncementForm: React.FC<AnnouncementFormProps> = ({ onSuccess, existing
 
   useEffect(() => {
     const loadDict = async () => {
-      const messages = (await import(`@/locales/${lang}.json`)).default;
+      // Corrected relative path to the locales directory
+      const messages = (await import(`../../../locales/${lang}.json`)).default;
       setDict(messages.forms.announcement);
       setCommonDict(messages.common);
     };
