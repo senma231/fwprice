@@ -33,13 +33,19 @@ export function middleware(request: NextRequest) {
   if (pathnameIsMissingLocale) {
     const locale = getLocale(request);
 
-    // Construct the new path with the determined locale
-    // If the original pathname is '/', redirect to `/${locale}/`
-    // Otherwise, redirect to `/${locale}${pathname}`
-    const newPath = pathname === '/' ? `/${locale}/` : `/${locale}${pathname}`;
+    let newPath;
+    if (pathname === '/') {
+      newPath = `/${locale}`; // Redirect to /locale (no trailing slash)
+    } else {
+      // Ensures that if pathname is already /foo, it becomes /locale/foo
+      newPath = `/${locale}${pathname}`;
+    }
+    
+    // Normalize slashes (e.g. ///foo -> /foo) and ensure a single leading slash
+    const normalizedPath = ('/' + newPath).replace(/\/+/g, '/');
     
     return NextResponse.redirect(
-      new URL(newPath, request.url)
+      new URL(normalizedPath, request.url)
     );
   }
 
