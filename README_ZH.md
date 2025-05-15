@@ -48,7 +48,7 @@ FreightWise 是一个专为货运价格查询、报价请求 (RFQ) 管理以及�
     GRANT ALL PRIVILEGES ON DATABASE freightwise_db TO your_db_user;
     ```
 3.  **创建表**:
-    连接到您新创建的数据库 (例如, `psql -d freightwise_db -U your_db_user`) 并运行以下 SQL DDL 语句来创建必要的表。如果 `uuid-ossp` 扩展尚不可用，您可能需要安装它 (`CREATE EXTENSION IF NOT EXISTS "uuid-ossp";`)，或者确保您的 PostgreSQL 版本支持 `gen_random_uuid()`。本应用将在 Node.js 中使用 `crypto.randomUUID()` 生成 UUID。
+    连接到您新创建的数据库 (例如, `psql -d freightwise_db -U your_db_user`) 并运行以下 SQL DDL 语句来创建必要的表。本应用将在 Node.js 中使用 `crypto.randomUUID()` 生成 UUID。
 
     ```sql
     -- 用户表
@@ -146,9 +146,10 @@ FreightWise 是一个专为货运价格查询、报价请求 (RFQ) 管理以及�
     ```
 
 4.  **初始数据 (可选)**: 您可能需要插入一些初始数据，例如一个管理员用户。
+    **重要提示**: `password_hash` 列用于存储安全哈希后的密码。以下示例使用明文密码占位符。**在存储真实用户数据前，您必须在应用程序逻辑中实现密码哈希。**
     ```sql
-    -- 重要提示：请将 'your_hashed_password_here' 替换为安全哈希后的密码。
-    -- 当前应用程序在存储前不哈希密码。这是一个严重的安全步骤。
+    -- 示例: (在实际设置中，请将 'admin_password_plain' 替换为哈希后的密码)
+    -- 当前应用不进行哈希，因此测试时，此处密码需与应用期望的明文匹配。
     INSERT INTO users (id, email, name, password_hash, role, permissions) VALUES
     (gen_random_uuid()::text, 'admin@freightwise.com', 'Admin User', 'admin_password_plain', 'admin', '{"prices": ["view", "create", "edit", "delete"], "users": ["view", "create", "edit", "delete"], "announcements": ["view", "create", "edit", "delete"], "rfqs": ["view", "create", "edit", "delete"]}');
     ```
@@ -158,17 +159,28 @@ FreightWise 是一个专为货运价格查询、报价请求 (RFQ) 管理以及�
 按照以下步骤设置项目以进行本地开发。
 
 ### 克隆仓库
-(说明保持不变)
+1.  将仓库克隆到您的本地计算机：
+    ```bash
+    git clone https://your-repository-url.git freightwise-app
+    ```
+    (请将 `https://your-repository-url.git` 替换为您的实际仓库 URL)
+2.  进入项目目录：
+    ```bash
+    cd freightwise-app
+    ```
 
 ### 安装
-(说明保持不变)
+使用 npm 或 yarn 安装项目依赖：
+```bash
+npm install
+# 或
+# yarn install
+```
 
 ### 环境变量
 
-项目使用 `.env` 文件来管理环境变量。通过复制 `.env.example` (如果存在) 或手动创建，在项目根目录中创建一个 `.env` 文件。
+项目使用 `.env` 文件来管理环境变量。在项目根目录中创建一个 `.env` 文件。您可以复制 `.env.example` (如果存在)，或手动创建并包含以下内容：
 
-**数据库连接:**
-在 `.env` 文件中配置您的 PostgreSQL 连接详细信息：
 ```env
 # PostgreSQL 数据库连接
 # 选项 1: 单独参数
@@ -180,36 +192,112 @@ POSTGRES_DATABASE=freightwise_db
 
 # 选项 2: 连接字符串 (如果您倾向于此方式，请取消注释并注释掉上面的参数)
 # DATABASE_URL="postgresql://your_db_user:your_db_password@localhost:5432/freightwise_db"
-```
-确保这些值与您的 PostgreSQL 设置相匹配。
 
-**AI 功能重要提示:**
-(关于 `GOOGLE_API_KEY` 的说明保持不变)
+# Google AI API 密钥 (用于 Genkit 功能)
+GOOGLE_API_KEY=your_google_ai_api_key_here
+```
+- 更新 `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DATABASE` 以匹配您的 PostgreSQL 设置。
+- 如果您使用 `DATABASE_URL`，请确保其格式正确。
+- 如果计划使用 AI 功能，请从 Google AI Studio (例如，为 Gemini) 获取 `GOOGLE_API_KEY`。
 
 ### 运行开发服务器
-(说明保持不变)
+要启动开发服务器 (根据您的 `package.json`，通常在 `http://localhost:9002`上运行)：
+```bash
+npm run dev
+# 或
+# yarn dev
+```
+这将启动 Next.js 应用程序。如果使用 Genkit 功能，请确保您的 Genkit 开发服务器正在运行 (如果单独管理) 或您的设置包含它 (例如，在单独的终端中运行 `genkit:watch`)。
 
 ## 构建生产版本
-(说明保持不变)
+要构建生产版本的应用程序：
+```bash
+npm run build
+# 或
+# yarn build
+```
+此命令会编译您的 Next.js 应用程序，并将生产就绪的文件输出到 `.next` 目录中。
 
 ## 部署
-(说明保持不变，但强调服务器上的数据库设置)
+
+本节概述了在自托管 Node.js 服务器环境中部署的步骤。
 
 ### 自托管 Node.js 服务器
-1.  **设置 PostgreSQL 数据库**: 确保您的生产服务器已安装并配置 PostgreSQL，并已按照“数据库设置”部分的说明创建了数据库和表。
-2.  **构建应用程序**: (同上)
-3.  **将文件传输到服务器**: (同上)
-4.  **在服务器上安装生产依赖项**: (同上)
-5.  **设置生产环境变量**: (同上，但现在包括 PostgreSQL 变量)
-    确保设置了所有必要的环境变量，包括 PostgreSQL 连接变量 (`POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DATABASE`, 或 `DATABASE_URL`) 和 `GOOGLE_API_KEY`。
-    **关键：设置 `NODE_ENV=production`**。
-6.  **启动应用程序**: (同上)
+
+1.  **设置 PostgreSQL 数据库**:
+    确保您的生产服务器已安装并配置 PostgreSQL。必须按照“数据库设置 (PostgreSQL)”部分的说明创建数据库 (`freightwise_db`) 和所有必要的表。确保数据库用户具有正确的权限。
+
+2.  **构建应用程序**:
+    通常最佳实践是在干净的环境中构建应用程序 (本地或 CI/CD 服务器)：
+    ```bash
+    npm run build
+    ```
+
+3.  **将文件传输到服务器**:
+    将以下内容复制到您的生产服务器：
+    *   `.next` (构建输出)
+    *   `public` (静态资源)
+    *   `package.json`
+    *   `package-lock.json` (如果使用 npm) 或 `yarn.lock` (如果使用 yarn)
+    *   `next.config.ts` (或 `.js`)
+    *   `locales` 目录 (用于国际化)
+    *   您的生产环境 `.env` 文件 (或确保环境变量直接在服务器上设置)。**不要将包含实际密钥的 `.env` 文件提交到版本控制系统。**
+    您可以创建这些项目的存档 (例如，`.tar.gz` 文件) 以方便传输。
+
+4.  **在服务器上安装生产依赖项**:
+    在服务器上导航到项目目录并运行：
+    ```bash
+    npm install --production
+    # 或
+    # yarn install --production
+    ```
+    这仅安装 `package.json` 中 `dependencies` 列出的依赖项，不包括 `devDependencies`。
+
+5.  **设置生产环境变量**:
+    确保在生产服务器上设置了所有必要的环境变量。这至关重要。这些包括：
+    *   `NODE_ENV=production`
+    *   `GOOGLE_API_KEY` (用于 AI 功能)
+    *   `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DATABASE` (或 `DATABASE_URL`，如果您使用连接字符串)。
+    设置这些变量的方式取决于您的服务器/平台 (例如，systemd 服务文件、PM2 加载的 `.env` 文件、特定于平台的配置面板)。
+
+6.  **启动应用程序**:
+    ```bash
+    npm run start
+    # 或
+    # yarn start
+    ```
+    此命令通常运行 `next start`，它会启动 Next.js 生产服务器。默认情况下，它侦听端口 3000，但这可以更改 (例如，通过 `PORT` 环境变量或配置 `next start -p <your_port>`)。
 
 ### 生产环境变量
-(说明保持不变，强调数据库凭据和 API 密钥的安全性)
+在生产环境中安全地管理环境变量至关重要。
+- **切勿将包含实际生产密钥 (如数据库密码或 API 密钥) 的 `.env` 文件提交到版本控制系统。**
+- 使用您的部署平台推荐的方法来设置环境变量 (例如，PaaS 配置、systemd 服务文件、Docker 环境变量，或由 PM2 等进程管理器加载的、安全管理且未在 git 中的 `.env` 文件)。
+- 确保将 `NODE_ENV` 设置为 `production`。
 
 ### 进程管理
-(说明保持不变)
+对于生产环境，强烈建议使用像 PM2 或 systemd 这样的进程管理器来：
+- 保持应用程序运行 (例如，在崩溃时重新启动)。
+- 管理日志。
+- 启用集群以利用多个 CPU 内核 (PM2 可以做到这一点)。
+- 处理零停机部署 (PM2 的平滑重启)。
+
+使用 PM2 的示例：
+```bash
+# 如果尚未全局安装 PM2
+npm install pm2 -g
+
+# 使用 PM2 启动您的应用 (假设您的启动脚本是 `next start`)
+pm2 start npm --name "freightwise-app" -- run start
+
+# 保存进程列表以便在服务器重启时自动启动
+pm2 save
+
+# 查看日志
+pm2 logs freightwise-app
+
+# 监控进程
+pm2 monit
+```
 
 ## 关键技术
 
@@ -226,125 +314,23 @@ POSTGRES_DATABASE=freightwise_db
 - **React Hook Form**: 用于表单管理。
 
 ## 本地化
-(说明保持不变)
+应用程序支持英语 (`en`) 和中文 (`zh`)。
+- 语言环境文件位于 `locales` 目录中 (`en.json`, `zh.json`)。
+- 自定义中间件 (`middleware.ts`) 处理语言环境检测和路由。
+- 默认语言环境是中文 (`zh`)。
 
 ## AI 功能 (Genkit)
-(说明保持不变)
+该应用程序利用 Genkit 实现 AI 驱动的功能，例如处理 RFQ 提交。
+- Genkit 流程定义在 `src/ai/flows` 目录中。
+- Genkit 配置 (例如，针对 Google AI 与 Gemini) 位于 `src/ai/genkit.ts` 中。
+- 确保设置了 `GOOGLE_API_KEY` 环境变量，以便这些功能正常工作。
 
 ## 安全注意事项
 
-- **密码哈希**: 当前实现**在存储到数据库或登录比较期间不会对密码进行哈希处理**。这是一个主要的安全漏洞。在生产系统中，您**必须**实现强密码哈希 (例如，使用 `bcrypt` 或 `Argon2`)。`users` 表中的 `password_hash` 列用于存储这些哈希值。
-- **SQL 注入**: 应用程序通过 `pg` 库使用参数化查询，这是防止 SQL 注入漏洞的标准方法。确保所有数据库交互继续使用此方法。
-- **输入验证**: Zod 用于对输入进行模式验证 (例如，RFQ 表单、API 流程)。对所有用户输入保持全面的验证。
-- **环境变量**: 将所有敏感信息 (数据库凭据、API 密钥) 保存在环境变量中，切勿将其提交到版本控制系统。
-```markdown
-当运行 `npm run build` 或 `yarn build` 时，Next.js 会将您的应用程序编译为优化的、生产就绪的状态。此过程包括：
-- 将 TypeScript 和 JSX 转译为 JavaScript。
-- 打包 JavaScript 代码。
-- 优化静态资源 (图片、CSS)。
-- 在可能的情况下生成静态 HTML 页面 (SSG) 或准备服务器端渲染页面 (SSR)。
-- 为 API 路由和服务器组件创建无服务器函数。
+- **密码哈希**: 当前的 `authService.ts` 实现**在存储到数据库或登录比较期间不会对密码进行哈希处理**。这是一个主要的安全漏洞。在生产系统中，您**必须**实现强密码哈希 (例如，使用 `bcrypt` 或 `Argon2`)。`users` 表中的 `password_hash` 列用于存储这些哈希值。
+- **SQL 注入**: 应用程序通过 `pg` 库和 `src/lib/db.ts` 中的自定义 `query` 函数使用参数化查询，这是防止 SQL 注入漏洞的标准方法。确保所有数据库交互继续使用此方法。
+- **输入验证**: Zod 用于对输入进行模式验证 (例如，RFQ 表单、API 流程、实体创建表单)。对所有用户输入保持全面的验证。
+- **环境变量**: 将所有敏感信息 (数据库凭据、API 密钥) 保存在环境变量中，切勿将其提交到版本控制系统。在生产中采用安全的方法管理这些变量。
+- **权限与授权**: 应用程序具有基于角色的权限系统 (`agent`, `admin`) 以及在 `users.permissions` 中定义的更细粒度的权限。确保对所有敏感操作都正确且稳健地执行此逻辑。
 
-输出将主要位于 `.next` 目录中。此目录包含在 Node.js 环境中运行应用程序所需的一切。
-
-对于部署到运行 Node.js 进程的服务器 (例如，EC2 实例、VPS 或专用服务器) 的典型情况：
-
-1.  **在本地或构建服务器上构建**:
-    通常最佳实践是在干净的环境中构建应用程序，这可以是您的本地计算机 (如果与服务器一致) 或专用的 CI/CD 流水线。
-    ```bash
-    npm run build
-    # 或
-    # yarn build
-    ```
-
-2.  **准备传输文件**:
-    您需要将以下内容传输到您的生产服务器：
-    *   `.next` (构建输出)
-    *   `public` (静态资源)
-    *   `package.json`
-    *   `package-lock.json` (如果使用 npm) 或 `yarn.lock` (如果使用 yarn)
-    *   `next.config.ts` (或 `.js`)
-    *   `locales` 目录 (用于国际化)
-    *   您的 `.env.production` 文件 (或确保环境变量直接在服务器上设置)。**不要提交包含实际密钥的 `.env` 文件。**
-
-    您可以创建这些项目的存档 (例如，`.tar.gz` 文件)。
-
-3.  **在生产服务器上**:
-    *   **设置 Node.js**: 确保已安装 Node.js (版本 20.x 或指定版本)。
-    *   **设置 PostgreSQL**: 确保您的 PostgreSQL 数据库已设置、可访问，并包含模式和任何必要的初始数据。
-    *   **传输文件**: 将您的存档复制到服务器并解压缩。
-    *   **安装生产依赖项**: 导航到项目目录并运行：
-        ```bash
-        npm install --production
-        # 或
-        # yarn install --production
-        ```
-        这仅安装 `package.json` 中 `dependencies` 列出的依赖项，不包括 `devDependencies`。
-    *   **设置环境变量**:
-        确保设置了所有必需的环境变量。这至关重要。这些包括：
-        *   `NODE_ENV=production`
-        *   `GOOGLE_API_KEY` (用于 AI 功能)
-        *   `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DATABASE` (或 `DATABASE_URL`)
-        设置这些变量的方式取决于您的服务器/平台 (例如，systemd 服务文件、PM2 加载的 `.env` 文件、特定于平台的配置面板)。
-    *   **启动应用程序**:
-        ```bash
-        npm run start
-        # 或
-        # yarn start
-        ```
-        此命令通常运行 `next start`，它会启动 Next.js 生产服务器。默认情况下，它侦听端口 3000，但这可以更改 (例如，通过 `PORT` 环境变量)。
-
-4.  **进程管理 (推荐)**:
-    对于生产环境，请使用像 PM2 这样的进程管理器来：
-    *   保持应用程序运行 (崩溃时重新启动)。
-    *   管理日志。
-    *   启用集群以利用多个 CPU 内核。
-    *   处理零停机部署 (平滑重启)。
-
-    使用 PM2 的示例：
-    ```bash
-    # 如果尚未全局安装 PM2
-    # npm install pm2 -g
-
-    # 使用 PM2 启动您的应用
-    pm2 start npm --name "freightwise-app" -- run start
-
-    # 查看日志
-    # pm2 logs freightwise-app
-
-    # 监控
-    # pm2 monit
-    ```
-
-5.  **Web 服务器/反向代理 (可选但推荐)**:
-    通常，您会在像 Nginx 或 Apache 这样的 Web 服务器后面运行您的 Next.js 应用，作为反向代理。这可以处理：
-    *   SSL/TLS 终止 (HTTPS)。
-    *   更有效地提供静态资源。
-    *   负载均衡 (如果您扩展到多个实例)。
-    *   缓存。
-    *   速率限制和其他安全措施。
-
-    一个 Nginx 配置可能如下所示 (简化版)：
-    ```nginx
-    server {
-        listen 80;
-        server_name yourdomain.com;
-
-        # 对于 SSL (推荐)
-        # listen 443 ssl;
-        # ssl_certificate /path/to/your/certificate.pem;
-        # ssl_certificate_key /path/to/your/private.key;
-
-        location / {
-            proxy_pass http://localhost:3000; # 假设 Next.js 在端口 3000 上运行
-            proxy_http_version 1.1;
-            proxy_set_header Upgrade $http_upgrade;
-            proxy_set_header Connection 'upgrade';
-            proxy_set_header Host $host;
-            proxy_cache_bypass $http_upgrade;
-        }
-    }
-    ```
-
-通过执行这些步骤，您应该能够成功地将 FreightWise 应用程序构建并部署到生产服务器。请记住根据您的特定服务器环境调整路径和配置。
-```
+    

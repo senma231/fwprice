@@ -48,7 +48,7 @@ This application uses PostgreSQL as its database.
     GRANT ALL PRIVILEGES ON DATABASE freightwise_db TO your_db_user;
     ```
 3.  **Create Tables**:
-    Connect to your newly created database (e.g., `psql -d freightwise_db -U your_db_user`) and run the following SQL DDL statements to create the necessary tables. You might need to install the `uuid-ossp` extension if it's not already available (`CREATE EXTENSION IF NOT EXISTS "uuid-ossp";`) or ensure your PostgreSQL version supports `gen_random_uuid()`. The application will generate UUIDs in Node.js using `crypto.randomUUID()`.
+    Connect to your newly created database (e.g., `psql -d freightwise_db -U your_db_user`) and run the following SQL DDL statements to create the necessary tables. The application will generate UUIDs in Node.js using `crypto.randomUUID()`.
 
     ```sql
     -- Users Table
@@ -146,9 +146,10 @@ This application uses PostgreSQL as its database.
     ```
 
 4.  **Initial Data (Optional)**: You may want to insert some initial data, for example, an admin user.
+    **Important**: The `password_hash` column is intended for securely hashed passwords. The example below uses a placeholder. **You MUST implement password hashing in the application logic before storing real user data.**
     ```sql
-    -- IMPORTANT: Replace 'your_hashed_password_here' with a securely hashed password.
-    -- The application currently does not hash passwords before storing. This is a critical security step.
+    -- Example: (Replace 'admin_password_plain' with a HASHED password in a real setup)
+    -- The application currently doesn't hash, so for testing, this needs to match what the app expects.
     INSERT INTO users (id, email, name, password_hash, role, permissions) VALUES
     (gen_random_uuid()::text, 'admin@freightwise.com', 'Admin User', 'admin_password_plain', 'admin', '{"prices": ["view", "create", "edit", "delete"], "users": ["view", "create", "edit", "delete"], "announcements": ["view", "create", "edit", "delete"], "rfqs": ["view", "create", "edit", "delete"]}');
     ```
@@ -158,17 +159,28 @@ This application uses PostgreSQL as its database.
 Follow these steps to set up the project for local development.
 
 ### Cloning the Repository
-(Instructions remain the same)
+1.  Clone the repository to your local machine:
+    ```bash
+    git clone https://your-repository-url.git freightwise-app
+    ```
+    (Replace `https://your-repository-url.git` with your actual repository URL)
+2.  Navigate into the project directory:
+    ```bash
+    cd freightwise-app
+    ```
 
 ### Installation
-(Instructions remain the same)
+Install the project dependencies using npm or yarn:
+```bash
+npm install
+# or
+# yarn install
+```
 
 ### Environment Variables
 
-The project uses a `.env` file for environment variables. Create a `.env` file in the project root by copying the `.env.example` if one exists, or create it manually.
+The project uses a `.env` file for environment variables. Create a `.env` file in the project root. You can copy `.env.example` if one exists, or create it manually with the following content:
 
-**Database Connection:**
-Configure your PostgreSQL connection details in the `.env` file:
 ```env
 # PostgreSQL Database Connection
 # Option 1: Individual Parameters
@@ -180,36 +192,112 @@ POSTGRES_DATABASE=freightwise_db
 
 # Option 2: Connection String (if you prefer this, uncomment and comment out the above)
 # DATABASE_URL="postgresql://your_db_user:your_db_password@localhost:5432/freightwise_db"
-```
-Ensure these values match your PostgreSQL setup.
 
-**Important for AI Features:**
-(Instructions remain the same for `GOOGLE_API_KEY`)
+# Google AI API Key (for Genkit features)
+GOOGLE_API_KEY=your_google_ai_api_key_here
+```
+- Update `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DATABASE` to match your PostgreSQL setup.
+- If you use `DATABASE_URL`, ensure it's correctly formatted.
+- Obtain a `GOOGLE_API_KEY` from Google AI Studio (e.g., for Gemini) if you plan to use AI features.
 
 ### Running the Development Server
-(Instructions remain the same)
+To start the development server (usually on `http://localhost:9002` as per your `package.json`):
+```bash
+npm run dev
+# or
+# yarn dev
+```
+This will start the Next.js application. If Genkit features are used, ensure your Genkit development server is running (if managed separately) or that your setup includes it (e.g., via `genkit:watch` in a separate terminal).
 
 ## Building for Production
-(Instructions remain the same)
+To build the application for production:
+```bash
+npm run build
+# or
+# yarn build
+```
+This command compiles your Next.js application and outputs the production-ready files into the `.next` directory.
 
 ## Deployment
-(Instructions remain the same, but emphasize database setup on the server)
+
+This section outlines steps for deploying to a self-hosted Node.js server environment.
 
 ### Self-Hosted Node.js Server
-1.  **Set up PostgreSQL Database**: Ensure your production server has PostgreSQL installed and configured, with the database and tables created as per the "Database Setup" section.
-2.  **Build the Application**: (Same)
-3.  **Transfer Files to Server**: (Same)
-4.  **Install Production Dependencies on Server**: (Same)
-5.  **Set Environment Variables in Production**: (Same, but now includes PostgreSQL variables)
-    Ensure all necessary environment variables are set, including those for PostgreSQL connection (`POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DATABASE`, or `DATABASE_URL`) and `GOOGLE_API_KEY`.
-    **Crucially, set `NODE_ENV=production`**.
-6.  **Start the Application**: (Same)
+
+1.  **Set up PostgreSQL Database**:
+    Ensure your production server has PostgreSQL installed and configured. The database (`freightwise_db`) and all necessary tables must be created as per the "Database Setup (PostgreSQL)" section. Make sure the database user has the correct permissions.
+
+2.  **Build the Application**:
+    It's often best practice to build the application in a clean environment (locally or on a CI/CD server):
+    ```bash
+    npm run build
+    ```
+
+3.  **Transfer Files to Server**:
+    Copy the following to your production server:
+    *   `.next` (the build output)
+    *   `public` (static assets)
+    *   `package.json`
+    *   `package-lock.json` (if using npm) or `yarn.lock` (if using yarn)
+    *   `next.config.ts` (or `.js`)
+    *   The `locales` directory (for internationalization)
+    *   Your production `.env` file (or ensure environment variables are set directly on the server). **Do not commit `.env` files with actual secrets.**
+    You can create an archive (e.g., a `.tar.gz` file) of these items for easier transfer.
+
+4.  **Install Production Dependencies on Server**:
+    Navigate to the project directory on the server and run:
+    ```bash
+    npm install --production
+    # or
+    # yarn install --production
+    ```
+    This installs only the dependencies listed in `dependencies` in `package.json`, not `devDependencies`.
+
+5.  **Set Environment Variables in Production**:
+    Ensure all necessary environment variables are set on the production server. This is crucial. These include:
+    *   `NODE_ENV=production`
+    *   `GOOGLE_API_KEY` (for AI features)
+    *   `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DATABASE` (or `DATABASE_URL` if you use the connection string).
+    How you set these depends on your server/platform (e.g., systemd service files, `.env` file loaded by PM2, platform-specific configuration panels).
+
+6.  **Start the Application**:
+    ```bash
+    npm run start
+    # or
+    # yarn start
+    ```
+    This command typically runs `next start`, which starts the Next.js production server. By default, it listens on port 3000, but this can be changed (e.g., via the `PORT` environment variable or by configuring `next start -p <your_port>`).
 
 ### Environment Variables in Production
-(Instructions remain the same, emphasizing security for DB credentials and API keys)
+It is critical to manage environment variables securely in production.
+- **Never commit `.env` files containing actual production secrets (like database passwords or API keys) to version control.**
+- Use your deployment platform's recommended method for setting environment variables (e.g., PaaS configuration, systemd service files, Docker environment variables, or a `.env` file loaded by your process manager like PM2 that is securely managed and not in git).
+- Ensure `NODE_ENV` is set to `production`.
 
 ### Process Management
-(Instructions remain the same)
+For production, it's highly recommended to use a process manager like PM2 or systemd to:
+- Keep your application running (e.g., restart on crash).
+- Manage logs.
+- Enable clustering to utilize multiple CPU cores (PM2 can do this).
+- Handle deployments with zero downtime (graceful reloads with PM2).
+
+Example with PM2:
+```bash
+# Install PM2 globally if you haven't already
+npm install pm2 -g
+
+# Start your app with PM2 (assuming your start script is `next start`)
+pm2 start npm --name "freightwise-app" -- run start
+
+# To save the process list for automatic restarts on server reboot
+pm2 save
+
+# To view logs
+pm2 logs freightwise-app
+
+# To monitor processes
+pm2 monit
+```
 
 ## Key Technologies
 
@@ -226,125 +314,23 @@ Ensure these values match your PostgreSQL setup.
 - **React Hook Form**: For form management.
 
 ## Localization
-(Instructions remain the same)
+The application supports English (`en`) and Chinese (`zh`) languages.
+- Locale files are located in the `locales` directory (`en.json`, `zh.json`).
+- A custom middleware (`middleware.ts`) handles locale detection and routing.
+- The default locale is Chinese (`zh`).
 
 ## AI Features (Genkit)
-(Instructions remain the same)
+The application utilizes Genkit for AI-powered features, such as processing RFQ submissions.
+- Genkit flows are defined in the `src/ai/flows` directory.
+- The Genkit configuration (e.g., for Google AI with Gemini) is in `src/ai/genkit.ts`.
+- Ensure the `GOOGLE_API_KEY` environment variable is set for these features to work.
 
 ## Security Notes
 
-- **Password Hashing**: The current implementation **DOES NOT HASH PASSWORDS** before storing them in the database or during login comparison. This is a major security vulnerability. In a production system, you **MUST** implement strong password hashing (e.g., using `bcrypt` or `Argon2`). The `password_hash` column in the `users` table is intended for storing these hashes.
-- **SQL Injection**: The application uses parameterized queries via the `pg` library, which is the standard way to prevent SQL injection vulnerabilities. Ensure all database interactions continue to use this approach.
-- **Input Validation**: Zod is used for schema validation on inputs (e.g., RFQ form, API flows). Maintain comprehensive validation for all user inputs.
-- **Environment Variables**: Keep all sensitive information (database credentials, API keys) in environment variables and never commit them to version control.
-```markdown
-When running `npm run build` or `yarn build`, Next.js will compile your application into an optimized production-ready state. This process includes:
-- Transpiling TypeScript and JSX into JavaScript.
-- Bundling JavaScript code.
-- Optimizing static assets (images, CSS).
-- Generating static HTML pages where possible (SSG) or preparing server-rendered pages (SSR).
-- Creating serverless functions for API routes and server components.
+- **Password Hashing**: The current `authService.ts` implementation **DOES NOT HASH PASSWORDS** before storing them in the database or during login comparison. This is a major security vulnerability. In a production system, you **MUST** implement strong password hashing (e.g., using `bcrypt` or `Argon2`). The `password_hash` column in the `users` table is intended for storing these hashes.
+- **SQL Injection**: The application uses parameterized queries via the `pg` library and the custom `query` function in `src/lib/db.ts`, which is the standard way to prevent SQL injection vulnerabilities. Ensure all database interactions continue to use this approach.
+- **Input Validation**: Zod is used for schema validation on inputs (e.g., RFQ form, API flows, entity creation forms). Maintain comprehensive validation for all user inputs.
+- **Environment Variables**: Keep all sensitive information (database credentials, API keys) in environment variables and never commit them to version control. Use secure methods to manage these variables in production.
+- **Permissions & Authorization**: The application has a role-based permission system (`agent`, `admin`) and more granular permissions defined in `users.permissions`. Ensure this logic is robust and correctly enforced for all sensitive operations.
 
-The output will be primarily located in the `.next` directory. This directory contains everything needed to run your application in a Node.js environment.
-
-For a typical deployment to a server where you run a Node.js process (e.g., an EC2 instance, a VPS, or a dedicated server):
-
-1.  **Build Locally or on a Build Server**:
-    It's often best practice to build the application in a clean environment, which could be your local machine (if consistent with the server) or a dedicated CI/CD pipeline.
-    ```bash
-    npm run build
-    # or
-    # yarn build
-    ```
-
-2.  **Prepare Files for Transfer**:
-    You'll need to transfer the following to your production server:
-    *   `.next` (the build output)
-    *   `public` (static assets)
-    *   `package.json`
-    *   `package-lock.json` (if using npm) or `yarn.lock` (if using yarn)
-    *   `next.config.ts` (or `.js`)
-    *   The `locales` directory (for internationalization)
-    *   Your `.env.production` file (or ensure environment variables are set directly on the server). **Do not commit `.env` files with actual secrets.**
-
-    You can create an archive (e.g., a `.tar.gz` file) of these items.
-
-3.  **On the Production Server**:
-    *   **Set up Node.js**: Ensure Node.js (version 20.x or as specified) is installed.
-    *   **Set up PostgreSQL**: Ensure your PostgreSQL database is set up, accessible, and contains the schema and any necessary initial data.
-    *   **Transfer Files**: Copy your archive to the server and extract it.
-    *   **Install Production Dependencies**: Navigate to the project directory and run:
-        ```bash
-        npm install --production
-        # or
-        # yarn install --production
-        ```
-        This installs only the dependencies listed in `dependencies` in `package.json`, not `devDependencies`.
-    *   **Set Environment Variables**:
-        Ensure all required environment variables are set. This is crucial. These include:
-        *   `NODE_ENV=production`
-        *   `GOOGLE_API_KEY` (for AI features)
-        *   `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DATABASE` (or `DATABASE_URL`)
-        How you set these depends on your server/platform (e.g., systemd service files, `.env` file loaded by PM2, platform-specific configuration panels).
-    *   **Start the Application**:
-        ```bash
-        npm run start
-        # or
-        # yarn start
-        ```
-        This command typically runs `next start`, which starts the Next.js production server. By default, it listens on port 3000, but this can be changed (e.g., via the `PORT` environment variable).
-
-4.  **Process Management (Recommended)**:
-    For a production environment, use a process manager like PM2 to:
-    *   Keep the application running (restarts on crash).
-    *   Manage logs.
-    *   Enable clustering to utilize multiple CPU cores.
-    *   Handle deployments with zero downtime (graceful reloads).
-
-    Example with PM2:
-    ```bash
-    # Install PM2 globally if you haven't already
-    # npm install pm2 -g
-
-    # Start your app with PM2
-    pm2 start npm --name "freightwise-app" -- run start
-
-    # To view logs
-    # pm2 logs freightwise-app
-
-    # To monitor
-    # pm2 monit
-    ```
-
-5.  **Web Server/Reverse Proxy (Optional but Recommended)**:
-    Often, you'll run your Next.js app behind a web server like Nginx or Apache acting as a reverse proxy. This can handle:
-    *   SSL/TLS termination (HTTPS).
-    *   Serving static assets more efficiently.
-    *   Load balancing (if you scale to multiple instances).
-    *   Caching.
-    *   Rate limiting and other security measures.
-
-    An Nginx configuration might look something like this (simplified):
-    ```nginx
-    server {
-        listen 80;
-        server_name yourdomain.com;
-
-        # For SSL (recommended)
-        # listen 443 ssl;
-        # ssl_certificate /path/to/your/certificate.pem;
-        # ssl_certificate_key /path/to/your/private.key;
-
-        location / {
-            proxy_pass http://localhost:3000; # Assuming Next.js runs on port 3000
-            proxy_http_version 1.1;
-            proxy_set_header Upgrade $http_upgrade;
-            proxy_set_header Connection 'upgrade';
-            proxy_set_header Host $host;
-            proxy_cache_bypass $http_upgrade;
-        }
-    }
-    ```
-
-By following these steps, you should be able to successfully build and deploy your FreightWise application to a production server. Remember to adapt paths and configurations to your specific server environment.
-```
+    
