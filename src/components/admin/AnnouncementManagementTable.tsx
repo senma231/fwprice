@@ -1,8 +1,9 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
 import type { Announcement } from '@/types/announcement';
-import { fetchAnnouncements, deleteAnnouncement as apiDeleteAnnouncement } from '@/lib/mockData';
+import { fetchAnnouncements, deleteAnnouncement as apiDeleteAnnouncement } from '@/lib/dataService'; // Updated import
 import {
   Table,
   TableBody,
@@ -38,7 +39,6 @@ const AnnouncementManagementTable = ({ lang }: AnnouncementManagementTableProps)
     const loadResources = async () => {
       setIsLoading(true);
       try {
-        // Corrected relative path
         const localeDict = (await import(`../../../locales/${lang}.json`)).default;
         setDict(localeDict.adminPages.announcementManagement);
         setCommonDict(localeDict.common);
@@ -48,8 +48,6 @@ const AnnouncementManagementTable = ({ lang }: AnnouncementManagementTableProps)
         setAnnouncements(data);
       } catch (error) {
         console.error("Failed to load resources", error);
-        // Fallback to English if dictionary loading fails
-        // Corrected relative path for fallback
         const enDict = (await import(`../../../locales/en.json`)).default;
         setDict(enDict.adminPages.announcementManagement);
         setCommonDict(enDict.common);
@@ -61,7 +59,7 @@ const AnnouncementManagementTable = ({ lang }: AnnouncementManagementTableProps)
   }, [lang]);
 
   const loadAnnouncements = async () => {
-    setIsLoading(true); // Keep this to show loading for announcement list specifically
+    setIsLoading(true);
     const data = await fetchAnnouncements();
     setAnnouncements(data);
     setIsLoading(false);
@@ -84,7 +82,7 @@ const AnnouncementManagementTable = ({ lang }: AnnouncementManagementTableProps)
   };
 
   const handleDeleteAnnouncement = async () => {
-    if (!announcementToDelete || !toastDict) return;
+    if (!announcementToDelete || !toastDict || !dict) return;
     try {
       await apiDeleteAnnouncement(announcementToDelete.id);
       toast({ 

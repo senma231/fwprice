@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -8,7 +9,7 @@ import { Form } from '@/components/ui/form';
 import PriceSearchFormFields from '@/components/common/PriceSearchFormFields';
 import PriceResultsDisplay from '@/components/common/PriceResultsDisplay';
 import type { Price } from '@/types/freight';
-import { fetchInternalPrices } from '@/lib/mockData';
+import { fetchInternalPrices } from '@/lib/dataService'; // Updated import
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { DollarSign } from 'lucide-react';
 import { Separator } from '../ui/separator';
@@ -17,14 +18,14 @@ const priceSearchSchema = z.object({
   origin: z.string().min(2, { message: "Origin must be at least 2 characters." }),
   destination: z.string().min(2, { message: "Destination must be at least 2 characters." }),
   weight: z.number().optional(),
-  freightType: z.enum(["sea", "air", "land"]).optional(),
+  freightType: z.enum(["sea", "air", "land", ""]).optional().transform(val => val === "" ? undefined : val),
 });
 
 type PriceSearchFormData = z.infer<typeof priceSearchSchema>;
 
 interface InternalPriceSearchProps {
   lang: string;
-  dict: any; // from internalPriceSearch namespace
+  dict: any; 
   commonDict: any;
   priceSearchFormDict: any;
   priceResultsDisplayDict: any;
@@ -41,6 +42,7 @@ const InternalPriceSearch = ({ lang, dict, commonDict, priceSearchFormDict, pric
     defaultValues: {
       origin: '',
       destination: '',
+      freightType: undefined,
     },
   });
 

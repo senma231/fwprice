@@ -1,8 +1,9 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
 import type { Announcement } from '@/types/announcement';
-import { fetchAnnouncements } from '@/lib/mockData';
+import { fetchAnnouncements } from '@/lib/dataService'; // Updated import
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
@@ -29,7 +30,7 @@ const InternalAnnouncements = ({ lang }: InternalAnnouncementsProps) => {
       } catch (error) {
         console.error("Failed to load announcements or dictionary", error);
         const fallbackDict = (await import(`../../../locales/en.json`)).default;
-        setDict(fallbackDict.internalAnnouncements); // Fallback
+        setDict(fallbackDict.internalAnnouncements); 
       }
       setIsLoading(false);
     };

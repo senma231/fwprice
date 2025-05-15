@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -15,7 +16,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import type { Announcement } from '@/types/announcement';
-import { createAnnouncement, updateAnnouncement } from '@/lib/mockData';
+import { createAnnouncement, updateAnnouncement } from '@/lib/dataService'; // Updated import
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from "@/hooks/use-toast";
 import { DialogFooter, DialogClose } from '@/components/ui/dialog';
@@ -23,7 +24,7 @@ import type { Locale } from '@/lib/dictionaries';
 import { useEffect, useState } from 'react';
 
 const announcementSchema = z.object({
-  title: z.string().min(5, "Title must be at least 5 characters."), // These messages can be part of dict too
+  title: z.string().min(5, "Title must be at least 5 characters."),
   content: z.string().min(10, "Content must be at least 10 characters."),
 });
 
@@ -53,7 +54,6 @@ const AnnouncementForm: React.FC<AnnouncementFormProps> = ({ onSuccess, existing
 
   useEffect(() => {
     const loadDict = async () => {
-      // Corrected relative path to the locales directory
       const messages = (await import(`../../../locales/${lang}.json`)).default;
       setDict(messages.forms.announcement);
       setCommonDict(messages.common);
@@ -64,7 +64,7 @@ const AnnouncementForm: React.FC<AnnouncementFormProps> = ({ onSuccess, existing
   const { formState: {isSubmitting} } = form;
 
   const onSubmit = async (data: AnnouncementFormData) => {
-    if (!user || !dict) { // Ensure dict is loaded
+    if (!user || !dict) {
       toast({ title: dict?.authError || "Authentication Error", description: dict?.authErrorDesc || "You must be logged in.", variant: "destructive"});
       return;
     }
@@ -72,7 +72,7 @@ const AnnouncementForm: React.FC<AnnouncementFormProps> = ({ onSuccess, existing
     const announcementData = { 
       ...data, 
       authorId: user.id, 
-      authorName: user.name || user.email 
+      authorName: user.name || user.email || 'System'
     };
 
     try {

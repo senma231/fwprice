@@ -1,8 +1,9 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
 import type { Price } from '@/types/freight';
-import { fetchAllPrices } from '@/lib/mockData';
+import { fetchAllPrices } from '@/lib/dataService'; // Updated import
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { CalendarDays, Plane, ShipIcon, Truck, Info } from 'lucide-react';
@@ -12,9 +13,9 @@ import type { Locale } from '@/lib/dictionaries';
 
 interface LatestInternalPricesDisplayProps {
   lang: Locale;
-  dict: any; // from internalPriceSearch namespace
-  commonDict: any; // from common namespace
-  priceResultsDisplayDict: any; // from priceResultsDisplay namespace
+  dict: any; 
+  commonDict: any; 
+  priceResultsDisplayDict: any; 
 }
 
 const LatestInternalPricesDisplay: React.FC<LatestInternalPricesDisplayProps> = ({ lang, dict, commonDict, priceResultsDisplayDict }) => {
@@ -28,8 +29,12 @@ const LatestInternalPricesDisplay: React.FC<LatestInternalPricesDisplayProps> = 
         const allPrices = await fetchAllPrices();
         const internalPrices = allPrices
           .filter(p => p.type === 'internal')
-          .sort((a, b) => parseInt(b.id) - parseInt(a.id)) // Sort by ID descending
-          .slice(0, 10);
+           // Assuming 'id' can be sorted chronologically; for PG SERIAL it would be. For UUID, sort by a date field.
+           // If using UUIDs and need latest, add a created_at to prices table and sort by that.
+           // For now, if IDs are string UUIDs, this sort might not be meaningful for "latest".
+           // Let's assume for this mock-to-PG, we add a created_at or rely on default table order for "latest" (less reliable)
+           // Or sort by validFrom if that implies recency. For now, just slicing.
+          .slice(0, 10); 
         setLatestPrices(internalPrices);
       } catch (error) {
         console.error("Failed to load latest internal prices", error);
@@ -38,7 +43,7 @@ const LatestInternalPricesDisplay: React.FC<LatestInternalPricesDisplayProps> = 
     };
 
     loadLatestPrices();
-  }, [lang]); // Re-fetch if lang changes, though data itself is not lang-specific
+  }, [lang]); 
 
   const getCarrierIcon = (carrier?: string) => {
     if (!carrier) return <ShipIcon className="h-5 w-5 text-muted-foreground" />;
@@ -135,5 +140,3 @@ const LatestInternalPricesDisplay: React.FC<LatestInternalPricesDisplayProps> = 
 };
 
 export default LatestInternalPricesDisplay;
-
-    

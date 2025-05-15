@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -7,9 +8,9 @@ import { Button } from '@/components/ui/button';
 import {
   Form
 } from '@/components/ui/form';
-import PriceFormFields from './PriceFormFields'; // Reusable fields
+import PriceFormFields from './PriceFormFields'; 
 import type { Price } from '@/types/freight';
-import { createPrice, updatePrice } from '@/lib/mockData';
+import { createPrice, updatePrice } from '@/lib/dataService'; // Updated import
 import { toast } from "@/hooks/use-toast";
 import { DialogFooter, DialogClose } from '@/components/ui/dialog';
 
@@ -47,7 +48,7 @@ const CreatePriceForm: React.FC<CreatePriceFormProps> = ({ onSuccess, existingPr
     resolver: zodResolver(priceFormSchema),
     defaultValues: existingPrice ? {
       ...existingPrice,
-      amount: Number(existingPrice.amount), // Ensure amount is number
+      amount: Number(existingPrice.amount), 
       validFrom: existingPrice.validFrom ? new Date(existingPrice.validFrom) : undefined,
       validTo: existingPrice.validTo ? new Date(existingPrice.validTo) : undefined,
     } : {
@@ -65,11 +66,17 @@ const CreatePriceForm: React.FC<CreatePriceFormProps> = ({ onSuccess, existingPr
 
   const onSubmit = async (data: PriceFormData) => {
     try {
+      const pricePayload = {
+          ...data,
+          // Ensure optional date fields are null if not provided, or correct Date object
+          validFrom: data.validFrom || undefined,
+          validTo: data.validTo || undefined,
+      };
       if (existingPrice) {
-        await updatePrice(existingPrice.id, data);
+        await updatePrice(existingPrice.id, pricePayload);
         toast({ title: "Price Updated", description: "The price details have been successfully updated." });
       } else {
-        await createPrice(data);
+        await createPrice(pricePayload);
         toast({ title: "Price Created", description: "The new price has been successfully added." });
       }
       onSuccess();

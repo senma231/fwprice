@@ -1,8 +1,9 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
 import type { RfqSubmission } from '@/types/rfq';
-import { fetchRfqs, updateRfqStatus } from '@/lib/mockData'; // Assuming these functions exist or will be created
+import { fetchRfqs, updateRfqStatus } from '@/lib/dataService'; // Updated import
 import {
   Table,
   TableBody,
@@ -13,13 +14,18 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Eye, CheckCircle, Mail, Phone, Building, MapPin, WeightIcon, Package } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Eye, CheckCircle, Mail, Building, MapPin, WeightIcon, Package } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from "@/hooks/use-toast";
 import { ScrollArea } from '@/components/ui/scroll-area';
+import type { Locale } from '@/lib/dictionaries'; // For potential future use
 
-const RfqManagementTable = () => {
+interface RfqManagementTableProps {
+  lang?: Locale; // Optional lang prop if dictionary keys are needed here directly
+}
+
+const RfqManagementTable = ({ lang }: RfqManagementTableProps) => {
   const [rfqs, setRfqs] = useState<RfqSubmission[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedRfq, setSelectedRfq] = useState<RfqSubmission | null>(null);
@@ -43,7 +49,7 @@ const RfqManagementTable = () => {
     try {
       await updateRfqStatus(rfqId, 'Contacted');
       toast({ title: "RFQ Status Updated", description: "RFQ marked as contacted."});
-      loadRfqs(); // Refresh the list
+      loadRfqs(); 
     } catch (error) {
       toast({ title: "Error Updating Status", description: "Could not update RFQ status.", variant: "destructive" });
     }
@@ -128,7 +134,7 @@ const RfqManagementTable = () => {
             ) : (
               rfqs.map((rfq) => (
                 <TableRow key={rfq.id}>
-                  <TableCell className="font-mono text-xs">{rfq.submissionId.split('-')[1]}</TableCell>
+                  <TableCell className="font-mono text-xs">{rfq.submissionId?.split('-')[1] || rfq.id}</TableCell>
                   <TableCell className="font-medium max-w-[150px] truncate" title={rfq.name}>{rfq.name}</TableCell>
                   <TableCell className="max-w-[200px] truncate" title={rfq.email}>{rfq.email}</TableCell>
                   <TableCell>{rfq.origin}</TableCell>

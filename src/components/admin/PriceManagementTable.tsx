@@ -1,8 +1,9 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
 import type { Price } from '@/types/freight';
-import { fetchAllPrices, deletePrice as apiDeletePrice } from '@/lib/mockData';
+import { fetchAllPrices, deletePrice as apiDeletePrice } from '@/lib/dataService'; // Updated import
 import {
   Table,
   TableBody,
@@ -13,13 +14,18 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
-import CreatePriceForm from './CreatePriceForm'; // We'll create this next
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
+import CreatePriceForm from './CreatePriceForm';
 import { Pencil, Trash2, PlusCircle, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from "@/hooks/use-toast";
+import type { Locale } from '@/lib/dictionaries'; // For potential future use with lang prop
 
-const PriceManagementTable = () => {
+interface PriceManagementTableProps {
+  lang?: Locale; // Optional lang prop if dictionary keys are needed here directly
+}
+
+const PriceManagementTable = ({ lang }: PriceManagementTableProps) => {
   const [prices, setPrices] = useState<Price[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -85,7 +91,7 @@ const PriceManagementTable = () => {
 
       <Dialog open={isCreateModalOpen} onOpenChange={(isOpen) => {
           setIsCreateModalOpen(isOpen);
-          if (!isOpen) setEditingPrice(null); // Reset editing state when closing
+          if (!isOpen) setEditingPrice(null); 
       }}>
         <DialogContent className="sm:max-w-[625px]">
           <DialogHeader>
